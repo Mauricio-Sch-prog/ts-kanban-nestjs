@@ -1,26 +1,48 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Tag } from './entities/tag.entity';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 
 @Injectable()
 export class TagsService {
-  create(createTagDto: CreateTagDto) {
-    return 'This action adds a new tag';
+  constructor(
+    @InjectRepository(Tag)
+    private tagsRepository: Repository<Tag>,
+  ) {}
+
+  async create(createTagDto: CreateTagDto) {
+    const tag = this.tagsRepository.create(createTagDto);
+    return await this.tagsRepository.save(tag);
   }
 
   findAll() {
-    return `This action returns all tags`;
+    const tags = this.tagsRepository.find();
+    return tags;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} tag`;
+  findOne(id: string) {
+    const tag = this.tagsRepository.findOneBy({ id: id });
+    return tag;
   }
 
-  update(id: number, updateTagDto: UpdateTagDto) {
-    return `This action updates a #${id} tag`;
+  async update(id: string, updateTagDto: UpdateTagDto): Promise<Tag> {
+    const tag = await this.tagsRepository.preload({
+      id: id,
+      ...updateTagDto,
+    });
+    if (!tag) {
+      throw new NotFoundException(`Tag with ID "${id}" not found`);
+    }
+    return this.tagsRepository.save(tag);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} tag`;
+  async remove(id: string) {
+    const tag = await this.tagsRepository.findOneBy({ id });
+    if (!tag) {
+      throw new NotFoundException(`Tag with ID "${id}" not found`);
+    }
+    await this.tagsRepository.softRemove(tag);
   }
 }

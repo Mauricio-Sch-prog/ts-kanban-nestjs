@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TableModule } from './table/table.module';
+import { BoardModule } from './board/board.module';
 import { LaneModule } from './lane/lane.module';
 import { TaskModule } from './task/task.module';
 import { TagsModule } from './tags/tags.module';
@@ -28,7 +28,7 @@ import { validate } from './config/env.validation';
       }),
     }),
 
-    TableModule,
+    BoardModule,
     LaneModule,
     TaskModule,
     TagsModule,

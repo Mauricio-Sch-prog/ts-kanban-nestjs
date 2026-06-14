@@ -1,1 +1,4 @@
-export class CreateLaneDto {}
+export class CreateLaneDto {
+  name?: string;
+  boardId?: string;
+}

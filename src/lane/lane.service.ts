@@ -1,26 +1,49 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateLaneDto } from './dto/create-lane.dto';
 import { UpdateLaneDto } from './dto/update-lane.dto';
+import { Lane } from './entities/lane.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class LaneService {
-  create(createLaneDto: CreateLaneDto) {
-    return 'This action adds a new lane';
+  constructor(
+    @InjectRepository(Lane)
+    private laneRepository: Repository<Lane>,
+  ) {}
+
+  async create(createLaneDto: CreateLaneDto) {
+    const lane = this.laneRepository.create(createLaneDto);
+    return await this.laneRepository.save(lane);
   }
 
   findAll() {
-    return `This action returns all lane`;
+    const lanes = this.laneRepository.find();
+    return lanes;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} lane`;
+  findOne(id: string) {
+    const lane = this.laneRepository.findOneBy({ id: id });
+    return lane;
   }
 
-  update(id: number, updateLaneDto: UpdateLaneDto) {
-    return `This action updates a #${id} lane`;
+  async update(id: string, updateLaneDto: UpdateLaneDto): Promise<Lane> {
+    const lane = await this.laneRepository.preload({
+      id: id,
+      ...updateLaneDto,
+    });
+    if (!lane) {
+      throw new NotFoundException(`Lane with ID "${id}" not found`);
+    }
+    return this.laneRepository.save(lane);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} lane`;
+  async remove(id: string) {
+    const lane = await this.laneRepository.findOneBy({ id });
+    if (!lane) {
+      throw new NotFoundException(`Lane with ID "${id}" not found`);
+    }
+
+    await this.laneRepository.softRemove(lane);
   }
 }
