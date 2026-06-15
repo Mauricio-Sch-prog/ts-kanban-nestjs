@@ -31,6 +31,11 @@ export class LaneController {
     return this.laneService.findOne(id);
   }
 
+  @Get('boards/:boardId/lanes')
+  findTableLanes(@Param('boardId', ParseUUIDPipe) id: string) {
+    return this.laneService.findTableLanes(id);
+  }
+
   @Patch(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,

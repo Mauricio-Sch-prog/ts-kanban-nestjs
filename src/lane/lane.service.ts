@@ -27,6 +27,11 @@ export class LaneService {
     return lane;
   }
 
+  findTableLanes(id: string) {
+    const lanes = this.laneRepository.findBy({ board: { id: id } });
+    return lanes;
+  }
+
   async update(id: string, updateLaneDto: UpdateLaneDto): Promise<Lane> {
     const lane = await this.laneRepository.preload({
       id: id,
