@@ -27,6 +27,11 @@ export class TaskService {
     return task;
   }
 
+  findLaneTasks(id: string) {
+    const tasks = this.taskRepository.findBy({ lane: { id } });
+    return tasks;
+  }
+
   async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
     const task = await this.taskRepository.preload({
       id: id,

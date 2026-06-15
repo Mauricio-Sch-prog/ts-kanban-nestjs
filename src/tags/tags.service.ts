@@ -27,6 +27,11 @@ export class TagsService {
     return tag;
   }
 
+  findTaskTags(id: string) {
+    const tag = this.tagsRepository.findBy({ task: { id } });
+    return tag;
+  }
+
   async update(id: string, updateTagDto: UpdateTagDto): Promise<Tag> {
     const tag = await this.tagsRepository.preload({
       id: id,

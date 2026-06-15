@@ -31,6 +31,11 @@ export class TaskController {
     return this.taskService.findOne(id);
   }
 
+  @Get('lane/:id/tasks')
+  findLaneTasks(@Param('id', ParseUUIDPipe) id: string) {
+    return this.taskService.findLaneTasks(id);
+  }
+
   @Patch(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,

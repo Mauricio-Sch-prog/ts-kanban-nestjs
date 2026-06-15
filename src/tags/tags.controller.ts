@@ -31,6 +31,11 @@ export class TagsController {
     return this.tagsService.findOne(id);
   }
 
+  @Get('task/:id/tags')
+  findTaskTags(@Param('id', ParseUUIDPipe) id: string) {
+    return this.tagsService.findTaskTags(id);
+  }
+
   @Patch(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,
