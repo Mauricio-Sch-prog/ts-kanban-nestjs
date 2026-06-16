@@ -31,6 +31,11 @@ export class BoardController {
     return this.boardService.findOne(id);
   }
 
+  @Get('user/:id/boards')
+  findUserBoards(@Param('id', ParseUUIDPipe) id: string) {
+    return this.boardService.findUserBoards(id);
+  }
+
   @Patch(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,

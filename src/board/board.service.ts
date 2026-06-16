@@ -27,6 +27,11 @@ export class BoardService {
     return board;
   }
 
+  findUserBoards(id: string) {
+    const boards = this.boardRepository.findBy({ id: id });
+    return boards;
+  }
+
   async update(id: string, updateBoardDto: UpdateBoardDto): Promise<Board> {
     const board = await this.boardRepository.preload({
       id: id,

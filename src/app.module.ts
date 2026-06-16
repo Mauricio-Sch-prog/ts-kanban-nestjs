@@ -8,6 +8,13 @@ import { TagsModule } from './tags/tags.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { validate } from './config/env.validation';
+import { UserModule } from './user/user.module';
+import { Board } from './board/entities/board.entity';
+import { Task } from './task/entities/task.entity';
+import { Lane } from './lane/entities/lane.entity';
+import { Tag } from './tags/entities/tag.entity';
+import { User } from './user/entities/user.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -22,6 +29,7 @@ import { validate } from './config/env.validation';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
+        entities: [User, Board, Lane, Task, Tag],
         url: configService.get<string>('DATABASE_URL'),
         autoLoadEntities: true,
         synchronize: configService.get<string>('NODE_ENV') !== 'production',
@@ -32,6 +40,8 @@ import { validate } from './config/env.validation';
     LaneModule,
     TaskModule,
     TagsModule,
+    UserModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
