@@ -7,12 +7,15 @@ import {
   Param,
   Delete,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { LaneService } from './lane.service';
 import { CreateLaneDto } from './dto/create-lane.dto';
 import { UpdateLaneDto } from './dto/update-lane.dto';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('lane')
+@UseGuards(AuthGuard)
 export class LaneController {
   constructor(private readonly laneService: LaneService) {}
 

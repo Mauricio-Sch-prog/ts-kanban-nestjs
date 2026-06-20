@@ -7,12 +7,15 @@ import {
   Param,
   Delete,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { BoardService } from './board.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('board')
+@UseGuards(AuthGuard)
 export class BoardController {
   constructor(private readonly boardService: BoardService) {}
 

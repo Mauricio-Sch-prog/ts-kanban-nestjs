@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { User } from 'src/user/entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
+import TokenPayload from './interfaces/token.interface';
 
 @Injectable()
 export class AuthService {
@@ -30,5 +31,13 @@ export class AuthService {
   generateJtwToken(user: Pick<User, 'id' | 'email'>): string {
     const payload = { email: user.email, sub: user.id };
     return this.jwtService.sign(payload);
+  }
+
+  async validateToken(token: string) {
+    const payload: TokenPayload = this.jwtService.verify(token, {
+      secret: process.env.JWT_SECRET,
+    });
+    const user = await this.userService.findOne(payload.sub);
+    return user;
   }
 }

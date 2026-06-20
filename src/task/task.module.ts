@@ -4,9 +4,14 @@ import { TaskController } from './task.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Task } from './entities/task.entity';
 import { LaneModule } from 'src/lane/lane.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Task]), forwardRef(() => LaneModule)],
+  imports: [
+    TypeOrmModule.forFeature([Task]),
+    forwardRef(() => LaneModule),
+    AuthModule,
+  ],
   controllers: [TaskController],
   providers: [TaskService],
 })
