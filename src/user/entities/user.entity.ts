@@ -4,8 +4,8 @@ import { Column, Entity } from 'typeorm';
 @Entity('users')
 export class User extends BaseEntity {
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column({ select: false })
-  password: string;
+  password!: string;
 }

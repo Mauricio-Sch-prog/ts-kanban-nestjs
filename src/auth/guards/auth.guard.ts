@@ -6,15 +6,13 @@ import {
 } from '@nestjs/common';
 
 import { AuthService } from '../auth.service';
-import { Request } from 'express';
+import { AuthenticatedRequest } from '../../common/interfaces/authenticatedRequest.interface';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(private readonly authService: AuthService) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    console.log('passing the guard');
-
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const token = request.cookies['access_token'] as string | undefined;
 
     if (!token) throw new UnauthorizedException('Missing token');
@@ -23,7 +21,7 @@ export class AuthGuard implements CanActivate {
 
     if (!user) throw new UnauthorizedException('Invalid user id');
 
-    request['user'] = user;
+    request.user = user;
 
     return true;
   }

@@ -5,9 +5,9 @@ import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 @Entity('boards')
 export class Board extends BaseEntity {
   @Column({ type: 'varchar', length: 150 })
-  name: string;
+  name!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  board: User;
+  user!: User;
 }

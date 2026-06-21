@@ -12,8 +12,11 @@ export class BoardService {
     private boardRepository: Repository<Board>,
   ) {}
 
-  async create(createBoardDto: CreateBoardDto) {
-    const newBoard = this.boardRepository.create(createBoardDto);
+  async create(createBoardDto: CreateBoardDto, userId: string) {
+    const newBoard = this.boardRepository.create({
+      user: { id: userId },
+      ...createBoardDto,
+    });
     return await this.boardRepository.save(newBoard);
   }
 
