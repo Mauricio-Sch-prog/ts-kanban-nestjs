@@ -13,8 +13,10 @@ export class TaskService {
   ) {}
 
   async create(createTaskDto: CreateTaskDto) {
-    console.log(createTaskDto);
-    const task = this.taskRepository.create(createTaskDto);
+    const task = this.taskRepository.create({
+      ...createTaskDto,
+      lane: { id: createTaskDto.lane },
+    });
     return await this.taskRepository.save(task);
   }
 
@@ -37,6 +39,7 @@ export class TaskService {
     const task = await this.taskRepository.preload({
       id: id,
       ...updateTaskDto,
+      lane: { id: updateTaskDto.lane },
     });
     if (!task) {
       throw new NotFoundException(`Task with ID "${id}" not found`);

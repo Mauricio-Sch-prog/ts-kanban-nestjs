@@ -1,4 +1,11 @@
+import { IsNotEmpty, IsString, IsUUID, MaxLength } from 'class-validator';
+
 export class CreateLaneDto {
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(50)
   name?: string;
-  boardId?: string;
+
+  @IsUUID()
+  board?: string;
 }

@@ -13,7 +13,10 @@ export class LaneService {
   ) {}
 
   async create(createLaneDto: CreateLaneDto) {
-    const lane = this.laneRepository.create(createLaneDto);
+    const lane = this.laneRepository.create({
+      ...createLaneDto,
+      board: { id: createLaneDto.board },
+    });
     return await this.laneRepository.save(lane);
   }
 
@@ -36,6 +39,7 @@ export class LaneService {
     const lane = await this.laneRepository.preload({
       id: id,
       ...updateLaneDto,
+      board: { id: updateLaneDto.board },
     });
     if (!lane) {
       throw new NotFoundException(`Lane with ID "${id}" not found`);

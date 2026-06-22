@@ -13,7 +13,10 @@ export class TagsService {
   ) {}
 
   async create(createTagDto: CreateTagDto) {
-    const tag = this.tagsRepository.create(createTagDto);
+    const tag = this.tagsRepository.create({
+      ...createTagDto,
+      task: { id: createTagDto.task },
+    });
     return await this.tagsRepository.save(tag);
   }
 
@@ -36,6 +39,7 @@ export class TagsService {
     const tag = await this.tagsRepository.preload({
       id: id,
       ...updateTagDto,
+      task: { id: updateTagDto.task },
     });
     if (!tag) {
       throw new NotFoundException(`Tag with ID "${id}" not found`);
