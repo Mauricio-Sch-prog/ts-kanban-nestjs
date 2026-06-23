@@ -7,47 +7,88 @@ import {
   Param,
   Delete,
   ParseUUIDPipe,
-  UseGuards,
+  // UseGuards,
 } from '@nestjs/common';
 import { LaneService } from './lane.service';
 import { CreateLaneDto } from './dto/create-lane.dto';
 import { UpdateLaneDto } from './dto/update-lane.dto';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
+// import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
+import type { AuthenticatedUser } from 'src/common/interfaces/authenticatedUser.interface';
+import { CheckOwnership } from 'src/common/decorators/ownershipOptions.decorator';
+import { Lane } from './entities/lane.entity';
+import { Board } from 'src/board/entities/board.entity';
 
 @Controller('lane')
-@UseGuards(AuthGuard)
+// @UseGuards(AuthGuard)
 export class LaneController {
   constructor(private readonly laneService: LaneService) {}
 
   @Post()
-  create(@Body() createLaneDto: CreateLaneDto) {
-    return this.laneService.create(createLaneDto);
+  create(
+    @Body() createLaneDto: CreateLaneDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.laneService.create(createLaneDto, user.id);
   }
 
   @Get()
-  findAll() {
-    return this.laneService.findAll();
+  findAll(@CurrentUser() user: AuthenticatedUser) {
+    return this.laneService.findAll(user.id);
   }
 
   @Get(':id')
+  @CheckOwnership({
+    entity: Lane,
+    where: (userId, laneId) => ({
+      id: laneId,
+      user: { id: userId },
+    }),
+  })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.laneService.findOne(id);
   }
 
   @Get('boards/:boardId/lanes')
-  findTableLanes(@Param('boardId', ParseUUIDPipe) id: string) {
-    return this.laneService.findTableLanes(id);
+  @CheckOwnership({
+    entity: Board,
+    param: 'boardId',
+    where: (userId, laneId) => ({
+      id: laneId,
+      user: { id: userId },
+    }),
+  })
+  findTableLanes(
+    @Param('boardId', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.laneService.findTableLanes(id, user.id);
   }
 
   @Patch(':id')
+  @CheckOwnership({
+    entity: Lane,
+    where: (userId, laneId) => ({
+      id: laneId,
+      user: { id: userId },
+    }),
+  })
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateLaneDto: UpdateLaneDto,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.laneService.update(id, updateLaneDto);
+    return this.laneService.update(id, updateLaneDto, user.id);
   }
 
   @Delete(':id')
+  @CheckOwnership({
+    entity: Lane,
+    where: (userId, laneId) => ({
+      id: laneId,
+      user: { id: userId },
+    }),
+  })
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.laneService.remove(id);
   }

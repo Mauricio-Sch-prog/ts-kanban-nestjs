@@ -12,9 +12,10 @@ export class TaskService {
     private taskRepository: Repository<Task>,
   ) {}
 
-  async create(createTaskDto: CreateTaskDto) {
+  async create(createTaskDto: CreateTaskDto, userId: string) {
     const task = this.taskRepository.create({
       ...createTaskDto,
+      user: { id: userId },
       lane: { id: createTaskDto.lane },
     });
     return await this.taskRepository.save(task);

@@ -13,6 +13,8 @@ import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
+import type { AuthenticatedUser } from 'src/common/interfaces/authenticatedUser.interface';
 
 @Controller('task')
 @UseGuards(AuthGuard)
@@ -20,8 +22,11 @@ export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto) {
-    return this.taskService.create(createTaskDto);
+  create(
+    @Body() createTaskDto: CreateTaskDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.taskService.create(createTaskDto, user.id);
   }
 
   @Get()

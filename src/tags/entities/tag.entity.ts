@@ -1,6 +1,7 @@
 import { BaseEntity } from 'src/common/entities/base.entity';
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Task } from 'src/task/entities/task.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Entity('tags')
 export class Tag extends BaseEntity {
@@ -10,4 +11,8 @@ export class Tag extends BaseEntity {
   @ManyToOne(() => Task, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'taskId' })
   task!: Task;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
+  user!: User;
 }

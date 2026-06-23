@@ -14,8 +14,8 @@ export class BoardService {
 
   async create(createBoardDto: CreateBoardDto, userId: string) {
     const newBoard = this.boardRepository.create({
-      user: { id: userId },
       ...createBoardDto,
+      user: { id: userId },
     });
     return await this.boardRepository.save(newBoard);
   }

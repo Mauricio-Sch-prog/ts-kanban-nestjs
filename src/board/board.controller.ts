@@ -27,7 +27,6 @@ export class BoardController {
     @Body() createBoardDto: CreateBoardDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    console.log(user);
     return this.boardService.create(createBoardDto, user.id);
   }
 

@@ -12,9 +12,10 @@ export class TagsService {
     private tagsRepository: Repository<Tag>,
   ) {}
 
-  async create(createTagDto: CreateTagDto) {
+  async create(createTagDto: CreateTagDto, userId: string) {
     const tag = this.tagsRepository.create({
       ...createTagDto,
+      user: { id: userId },
       task: { id: createTagDto.task },
     });
     return await this.tagsRepository.save(tag);

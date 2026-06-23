@@ -13,6 +13,8 @@ import { TagsService } from './tags.service';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
+import type { AuthenticatedUser } from 'src/common/interfaces/authenticatedUser.interface';
 
 @Controller('tags')
 @UseGuards(AuthGuard)
@@ -20,8 +22,11 @@ export class TagsController {
   constructor(private readonly tagsService: TagsService) {}
 
   @Post()
-  create(@Body() createTagDto: CreateTagDto) {
-    return this.tagsService.create(createTagDto);
+  create(
+    @Body() createTagDto: CreateTagDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.tagsService.create(createTagDto, user.id);
   }
 
   @Get()
