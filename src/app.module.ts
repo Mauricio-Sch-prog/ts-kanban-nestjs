@@ -15,6 +15,9 @@ import { Lane } from './lane/entities/lane.entity';
 import { Tag } from './tags/entities/tag.entity';
 import { User } from './user/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { OwnershipGuard } from './common/guards/owrnership.guard';
+import { AuthGuard } from './auth/guards/auth.guard';
 
 @Module({
   imports: [
@@ -36,14 +39,24 @@ import { AuthModule } from './auth/auth.module';
       }),
     }),
 
+    AuthModule,
     BoardModule,
     LaneModule,
     TaskModule,
     TagsModule,
     UserModule,
-    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: OwnershipGuard,
+    },
+  ],
 })
 export class AppModule {}

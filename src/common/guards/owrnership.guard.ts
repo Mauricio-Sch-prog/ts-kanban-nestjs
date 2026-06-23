@@ -28,6 +28,9 @@ export class OwnershipGuard implements CanActivate {
     if (!options) return true;
 
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    if (!request.user) {
+      throw new ForbiddenException('User not authenticated');
+    }
     const user = request.user;
 
     const paramKey = options.param || 'id';
@@ -35,10 +38,9 @@ export class OwnershipGuard implements CanActivate {
     if (!resourceId) {
       throw new ForbiddenException('Missing resource identifier');
     }
-
     const repo = this.dataSource.getRepository(options.entity);
-
     const where = options.where(user.id, resourceId);
+    console.log('en garde');
 
     const entity = await repo.findOne({ where });
 
