@@ -5,10 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Tag } from './entities/tag.entity';
 import { TaskModule } from 'src/task/task.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { Task } from 'src/task/entities/task.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Tag]),
+    TypeOrmModule.forFeature([Tag, Task]),
     forwardRef(() => TaskModule),
     AuthModule,
   ],

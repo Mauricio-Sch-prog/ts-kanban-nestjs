@@ -20,8 +20,10 @@ export class BoardService {
     return await this.boardRepository.save(newBoard);
   }
 
-  findAll() {
-    const boards = this.boardRepository.find();
+  findAll(userId: string) {
+    const boards = this.boardRepository.find({
+      where: { user: { id: userId } },
+    });
     return boards;
   }
 
@@ -30,19 +32,19 @@ export class BoardService {
     return board;
   }
 
-  findUserBoards(id: string) {
-    const boards = this.boardRepository.findBy({ id: id });
-    return boards;
-  }
-
-  async update(id: string, updateBoardDto: UpdateBoardDto): Promise<Board> {
-    const board = await this.boardRepository.preload({
-      id: id,
-      ...updateBoardDto,
+  async update(
+    id: string,
+    updateBoardDto: UpdateBoardDto,
+    userId: string,
+  ): Promise<Board> {
+    const board = await this.boardRepository.findOne({
+      where: { id: id, user: { id: userId } },
     });
     if (!board) {
       throw new NotFoundException(`Board with ID "${id}" not found`);
     }
+    Object.assign(board, updateBoardDto);
+
     return this.boardRepository.save(board);
   }
 

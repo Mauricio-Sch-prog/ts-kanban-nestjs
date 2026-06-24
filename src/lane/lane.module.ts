@@ -5,10 +5,11 @@ import { Lane } from './entities/lane.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BoardModule } from 'src/board/board.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { Board } from 'src/board/entities/board.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Lane]),
+    TypeOrmModule.forFeature([Lane, Board]),
     forwardRef(() => BoardModule),
     AuthModule,
   ],

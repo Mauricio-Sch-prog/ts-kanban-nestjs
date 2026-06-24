@@ -7,20 +7,21 @@ import {
   Param,
   Delete,
   ParseUUIDPipe,
+  UseGuards,
   // UseGuards,
 } from '@nestjs/common';
 import { LaneService } from './lane.service';
 import { CreateLaneDto } from './dto/create-lane.dto';
 import { UpdateLaneDto } from './dto/update-lane.dto';
-// import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
 import type { AuthenticatedUser } from 'src/common/interfaces/authenticatedUser.interface';
 import { CheckOwnership } from 'src/common/decorators/ownershipOptions.decorator';
 import { Lane } from './entities/lane.entity';
 import { Board } from 'src/board/entities/board.entity';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('lane')
-// @UseGuards(AuthGuard)
+@UseGuards(AuthGuard)
 export class LaneController {
   constructor(private readonly laneService: LaneService) {}
 
@@ -49,20 +50,20 @@ export class LaneController {
     return this.laneService.findOne(id);
   }
 
-  @Get('boards/:boardId/lanes')
+  @Get('board/:boardId/lanes')
   @CheckOwnership({
     entity: Board,
     param: 'boardId',
-    where: (userId, laneId) => ({
-      id: laneId,
+    where: (userId, boardId) => ({
+      id: boardId,
       user: { id: userId },
     }),
   })
-  findTableLanes(
+  findBoardLanes(
     @Param('boardId', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.laneService.findTableLanes(id, user.id);
+    return this.laneService.findBoardLanes(id, user.id);
   }
 
   @Patch(':id')
