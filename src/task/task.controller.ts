@@ -33,8 +33,8 @@ export class TaskController {
   }
 
   @Get()
-  findAll(@CurrentUser() user: AuthenticatedUser) {
-    return this.taskService.findAll(user.id);
+  findAll() {
+    return this.taskService.findAll();
   }
 
   @Get(':id')
@@ -58,11 +58,8 @@ export class TaskController {
       user: { id: userId },
     }),
   })
-  findLaneTasks(
-    @Param('laneId', ParseUUIDPipe) id: string,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return this.taskService.findLaneTasks(id, user.id);
+  findLaneTasks(@Param('laneId', ParseUUIDPipe) id: string) {
+    return this.taskService.findLaneTasks(id);
   }
 
   @Patch(':id')

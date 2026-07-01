@@ -6,6 +6,7 @@ import { Task } from './entities/task.entity';
 import { LaneModule } from 'src/lane/lane.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { Lane } from 'src/lane/entities/lane.entity';
+import { TaskScopedRepository } from './task.scoped.repository';
 
 @Module({
   imports: [
@@ -14,6 +15,6 @@ import { Lane } from 'src/lane/entities/lane.entity';
     AuthModule,
   ],
   controllers: [TaskController],
-  providers: [TaskService],
+  providers: [TaskService, TaskScopedRepository],
 })
 export class TaskModule {}

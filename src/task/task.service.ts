@@ -9,12 +9,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Task } from './entities/task.entity';
 import { Repository } from 'typeorm';
 import { Lane } from 'src/lane/entities/lane.entity';
+import { TaskScopedRepository } from './task.scoped.repository';
 
 @Injectable()
 export class TaskService {
   constructor(
-    @InjectRepository(Task)
-    private taskRepository: Repository<Task>,
+    private readonly taskRepo: TaskScopedRepository,
     @InjectRepository(Lane)
     private laneRepository: Repository<Lane>,
   ) {}
@@ -26,29 +26,26 @@ export class TaskService {
 
     if (!lane) throw new ForbiddenException("Lane doesn't belong to user");
 
-    const task = this.taskRepository.create({
+    const task = await this.taskRepo.save({
       ...createTaskDto,
       user: { id: userId },
       lane: { id: createTaskDto.lane },
     });
-    return await this.taskRepository.save(task);
+    return task;
   }
 
-  findAll(userId: string) {
-    const tasks = this.taskRepository.find({ where: { user: { id: userId } } });
+  findAll() {
+    const tasks = this.taskRepo.find();
     return tasks;
   }
 
   findOne(id: string) {
-    const task = this.taskRepository.findOneBy({ id: id });
+    const task = this.taskRepo.findOne({ where: { id: id } });
     return task;
   }
 
-  findLaneTasks(id: string, userId: string) {
-    const tasks = this.taskRepository.findBy({
-      lane: { id },
-      user: { id: userId },
-    });
+  findLaneTasks(id: string) {
+    const tasks = this.taskRepo.find({ where: { lane: { id: id } } });
     return tasks;
   }
 
@@ -64,25 +61,20 @@ export class TaskService {
       if (!lane) throw new ForbiddenException("Lane doesn't belong to user");
     }
 
-    const task = await this.taskRepository.findOne({
-      where: {
-        id: id,
-        user: { id: userId },
-      },
-    });
+    const task = await this.taskRepo.findOne({ where: { id: id } });
 
     if (!task) throw new NotFoundException(`Task with ID "${id}" not found`);
     Object.assign(task, updateTaskDto);
 
-    return this.taskRepository.save(task);
+    return this.taskRepo.save(task);
   }
 
   async remove(id: string) {
-    const task = await this.taskRepository.findOneBy({ id });
+    const task = await this.taskRepo.findOne({ where: { id } });
     if (!task) {
       throw new NotFoundException(`Task with ID "${id}" not found`);
     }
-    await this.taskRepository.softRemove(task);
+    await this.taskRepo.softRemove(task);
     return { message: 'Task removed succesfully' };
   }
 }

@@ -33,8 +33,8 @@ export class TagsController {
   }
 
   @Get()
-  findAll(@CurrentUser() user: AuthenticatedUser) {
-    return this.tagsService.findAll(user.id);
+  findAll() {
+    return this.tagsService.findAll();
   }
 
   @Get(':id')
@@ -58,11 +58,8 @@ export class TagsController {
       user: { id: userId },
     }),
   })
-  findTaskTags(
-    @Param('taskId', ParseUUIDPipe) id: string,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return this.tagsService.findTaskTags(id, user.id);
+  findTaskTags(@Param('taskId', ParseUUIDPipe) id: string) {
+    return this.tagsService.findTaskTags(id);
   }
 
   @Patch(':id')
