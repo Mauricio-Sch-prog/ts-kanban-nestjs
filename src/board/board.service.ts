@@ -1,60 +1,48 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { Board } from './entities/board.entity';
-import { Repository } from 'typeorm';
+import { BoardScopedRepository } from './board.scoped.repository';
 
 @Injectable()
 export class BoardService {
-  constructor(
-    @InjectRepository(Board)
-    private boardRepository: Repository<Board>,
-  ) {}
+  constructor(private readonly boardRepo: BoardScopedRepository) {}
 
-  async create(createBoardDto: CreateBoardDto, userId: string) {
-    const newBoard = this.boardRepository.create({
+  async create(createBoardDto: CreateBoardDto) {
+    const newBoard = await this.boardRepo.save({
       ...createBoardDto,
-      user: { id: userId },
     });
-    return await this.boardRepository.save(newBoard);
+    return newBoard;
   }
 
-  findAll(userId: string) {
-    const boards = this.boardRepository.find({
-      where: { user: { id: userId } },
-    });
+  findAll() {
+    const boards = this.boardRepo.find();
     return boards;
   }
 
   findOne(id: string) {
-    const board = this.boardRepository.findOneBy({ id: id });
+    const board = this.boardRepo.findOne({ where: { id: id } });
     return board;
   }
 
-  async update(
-    id: string,
-    updateBoardDto: UpdateBoardDto,
-    userId: string,
-  ): Promise<Board> {
-    const board = await this.boardRepository.findOne({
-      where: { id: id, user: { id: userId } },
-    });
+  async update(id: string, updateBoardDto: UpdateBoardDto): Promise<Board> {
+    const board = await this.boardRepo.findOne({ where: { id: id } });
     if (!board) {
       throw new NotFoundException(`Board with ID "${id}" not found`);
     }
     Object.assign(board, updateBoardDto);
 
-    return this.boardRepository.save(board);
+    return this.boardRepo.save(board);
   }
 
   async remove(id: string) {
-    const board = await this.boardRepository.findOneBy({ id });
+    const board = await this.boardRepo.findOne({ where: { id } });
 
     if (!board) {
       throw new NotFoundException(`Board with ID "${id}" not found`);
     }
 
-    await this.boardRepository.softRemove(board);
+    await this.boardRepo.softRemove(board);
+    return { message: 'Board removed succesfully' };
   }
 }

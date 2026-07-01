@@ -8,7 +8,6 @@ import {
   Delete,
   ParseUUIDPipe,
   UseGuards,
-  // UseGuards,
 } from '@nestjs/common';
 import { LaneService } from './lane.service';
 import { CreateLaneDto } from './dto/create-lane.dto';
@@ -34,8 +33,8 @@ export class LaneController {
   }
 
   @Get()
-  findAll(@CurrentUser() user: AuthenticatedUser) {
-    return this.laneService.findAll(user.id);
+  findAll() {
+    return this.laneService.findAll();
   }
 
   @Get(':id')
@@ -59,11 +58,8 @@ export class LaneController {
       user: { id: userId },
     }),
   })
-  findBoardLanes(
-    @Param('boardId', ParseUUIDPipe) id: string,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return this.laneService.findBoardLanes(id, user.id);
+  findBoardLanes(@Param('boardId', ParseUUIDPipe) id: string) {
+    return this.laneService.findBoardLanes(id);
   }
 
   @Patch(':id')

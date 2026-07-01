@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Board } from './entities/board.entity';
 import { UserModule } from 'src/user/user.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { BoardScopedRepository } from './board.scoped.repository';
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { AuthModule } from 'src/auth/auth.module';
     AuthModule,
   ],
   controllers: [BoardController],
-  providers: [BoardService],
+  providers: [BoardService, BoardScopedRepository],
 })
 export class BoardModule {}

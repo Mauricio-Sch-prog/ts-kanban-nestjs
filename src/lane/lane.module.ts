@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BoardModule } from 'src/board/board.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { Board } from 'src/board/entities/board.entity';
+import { LaneScopedRepository } from './lane.scoped.repository';
 
 @Module({
   imports: [
@@ -14,6 +15,6 @@ import { Board } from 'src/board/entities/board.entity';
     AuthModule,
   ],
   controllers: [LaneController],
-  providers: [LaneService],
+  providers: [LaneService, LaneScopedRepository],
 })
 export class LaneModule {}

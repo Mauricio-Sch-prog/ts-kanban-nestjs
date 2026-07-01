@@ -13,8 +13,6 @@ import { BoardService } from './board.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
-import type { AuthenticatedUser } from 'src/common/interfaces/authenticatedUser.interface';
 import { CheckOwnership } from 'src/common/decorators/ownershipOptions.decorator';
 import { Board } from './entities/board.entity';
 
@@ -24,16 +22,13 @@ export class BoardController {
   constructor(private readonly boardService: BoardService) {}
 
   @Post()
-  create(
-    @Body() createBoardDto: CreateBoardDto,
-    @CurrentUser() user: AuthenticatedUser,
-  ) {
-    return this.boardService.create(createBoardDto, user.id);
+  create(@Body() createBoardDto: CreateBoardDto) {
+    return this.boardService.create(createBoardDto);
   }
 
   @Get()
-  findAll(@CurrentUser() user: AuthenticatedUser) {
-    return this.boardService.findAll(user.id);
+  findAll() {
+    return this.boardService.findAll();
   }
 
   @Get(':id')
@@ -59,9 +54,8 @@ export class BoardController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateBoardDto: UpdateBoardDto,
-    @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.boardService.update(id, updateBoardDto, user.id);
+    return this.boardService.update(id, updateBoardDto);
   }
 
   @Delete(':id')
