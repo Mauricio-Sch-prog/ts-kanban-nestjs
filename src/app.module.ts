@@ -18,6 +18,7 @@ import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { OwnershipGuard } from './common/guards/owrnership.guard';
 import { AuthGuard } from './auth/guards/auth.guard';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -38,6 +39,9 @@ import { AuthGuard } from './auth/guards/auth.guard';
         synchronize: configService.get<string>('NODE_ENV') !== 'production',
       }),
     }),
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 60000, limit: 10 }],
+    }),
 
     AuthModule,
     BoardModule,
@@ -49,6 +53,10 @@ import { AuthGuard } from './auth/guards/auth.guard';
   controllers: [AppController],
   providers: [
     AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
