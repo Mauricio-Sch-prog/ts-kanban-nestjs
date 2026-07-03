@@ -13,9 +13,9 @@ import { TagsService } from './tags.service';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { CurrentUser } from 'src/common/decorators/currentUser.decorator';
-import type { AuthenticatedUser } from 'src/common/interfaces/authenticatedUser.interface';
-import { CheckOwnership } from 'src/common/decorators/ownershipOptions.decorator';
+import { CurrentUser } from 'src/common/decorator/currentUser.decorator';
+import type { AuthenticatedUser } from 'src/common/interface/authenticatedUser.interface';
+import { CheckOwnership } from 'src/common/decorator/ownershipOptions.decorator';
 import { Tag } from './entities/tag.entity';
 import { Task } from 'src/task/entities/task.entity';
 

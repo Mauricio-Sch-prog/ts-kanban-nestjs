@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import * as typeorm from 'typeorm';
-import type { AuthenticatedRequest } from './interfaces/authenticatedRequest.interface';
+import type { AuthenticatedRequest } from './interface/authenticatedRequest.interface';
 
 export abstract class BaseScopedRepository<T extends typeorm.ObjectLiteral> {
   protected abstract entity: typeorm.EntityTarget<T>;

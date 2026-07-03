@@ -9,8 +9,8 @@ import { DataSource } from 'typeorm';
 import {
   OWNERSHIP_KEY,
   OwnershipOptions,
-} from '../decorators/ownershipOptions.decorator';
-import { AuthenticatedRequest } from '../interfaces/authenticatedRequest.interface';
+} from '../decorator/ownershipOptions.decorator';
+import { AuthenticatedRequest } from '../interface/authenticatedRequest.interface';
 
 @Injectable()
 export class OwnershipGuard implements CanActivate {
@@ -40,7 +40,6 @@ export class OwnershipGuard implements CanActivate {
     }
     const repo = this.dataSource.getRepository(options.entity);
     const where = options.where(user.id, resourceId);
-    console.log('en garde');
 
     const entity = await repo.findOne({ where });
 

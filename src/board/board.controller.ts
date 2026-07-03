@@ -13,7 +13,7 @@ import { BoardService } from './board.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { CheckOwnership } from 'src/common/decorators/ownershipOptions.decorator';
+import { CheckOwnership } from 'src/common/decorator/ownershipOptions.decorator';
 import { Board } from './entities/board.entity';
 
 @Controller('board')
