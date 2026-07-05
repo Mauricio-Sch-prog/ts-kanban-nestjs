@@ -1,6 +1,4 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { BoardModule } from './board/board.module';
 import { LaneModule } from './lane/lane.module';
 import { TaskModule } from './task/task.module';
@@ -51,9 +49,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
     TagsModule,
     UserModule,
   ],
-  controllers: [AppController],
   providers: [
-    AppService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
