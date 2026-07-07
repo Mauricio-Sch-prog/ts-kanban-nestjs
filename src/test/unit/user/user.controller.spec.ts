@@ -7,7 +7,6 @@ import { createUserMock } from 'src/test/factories/user.factory';
 
 describe('UserController', () => {
   let controller: UserController;
-  let service: UserService;
 
   const mockUserService = {
     create: jest.fn(),
@@ -18,6 +17,14 @@ describe('UserController', () => {
   };
 
   beforeEach(async () => {
+    const mockUserService = {
+      create: jest.fn(),
+      findAll: jest.fn(),
+      findOne: jest.fn(),
+      update: jest.fn(),
+      remove: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserController],
       providers: [
@@ -29,7 +36,6 @@ describe('UserController', () => {
     }).compile();
 
     controller = module.get<UserController>(UserController);
-    service = module.get<UserService>(UserService);
   });
 
   afterEach(() => {
@@ -37,19 +43,27 @@ describe('UserController', () => {
   });
 
   describe('create', () => {
-    it('should create a user', async () => {
-      const dto: CreateUserDto = {
+    const dto: CreateUserDto = {
         email: 'test@test.com',
         password: '123456',
       };
+    it('should create a user', async () => {
+      
       const mockUser = createUserMock();
 
       mockUserService.create.mockResolvedValue(mockUser);
 
       const result = await controller.create(dto);
 
-      expect(service.create).toHaveBeenCalledWith(dto);
+      expect(mockUserService.create).toHaveBeenCalledWith(dto);
       expect(result).toEqual(mockUser);
+    });
+      it('should propagate error from service', async () => {
+        mockUserService.create.mockRejectedValue(new Error('fail'));
+
+        await expect(controller.create(dto)).rejects.toThrow('fail');
+        expect(mockUserService.create).toHaveBeenCalledWith(dto);
+      });
     });
   });
 
@@ -60,7 +74,7 @@ describe('UserController', () => {
 
       const result = await controller.findAll();
 
-      expect(service.findAll).toHaveBeenCalled();
+      expect(mockUserService.findAll).toHaveBeenCalled();
       expect(result).toEqual([mockUser]);
     });
   });
@@ -72,7 +86,7 @@ describe('UserController', () => {
 
       const result = await controller.findOne('uuid-123');
 
-      expect(service.findOne).toHaveBeenCalledWith('uuid-123');
+      expect(mockUserService.findOne).toHaveBeenCalledWith('uuid-123');
       expect(result).toEqual(mockUser);
     });
   });
@@ -90,7 +104,7 @@ describe('UserController', () => {
 
       const result = await controller.update('uuid-123', dto);
 
-      expect(service.update).toHaveBeenCalledWith('uuid-123', dto);
+      expect(mockUserService.update).toHaveBeenCalledWith('uuid-123', dto);
       expect(result).toEqual(updatedUser);
     });
   });
@@ -101,7 +115,7 @@ describe('UserController', () => {
 
       const result = await controller.remove('uuid-123');
 
-      expect(service.remove).toHaveBeenCalledWith('uuid-123');
+      expect(mockUserService.remove).toHaveBeenCalledWith('uuid-123');
       expect(result).toBeUndefined();
     });
   });
