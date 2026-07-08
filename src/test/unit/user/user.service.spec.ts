@@ -15,7 +15,7 @@ describe('UserService', () => {
   let service: UserService;
   let repository: jest.Mocked<Repository<User>>;
 
-  const mockRepository = {
+  const mockRepository: Partial<jest.Mocked<Repository<User>>> = {
     create: jest.fn(),
     save: jest.fn(),
     find: jest.fn(),
@@ -102,7 +102,7 @@ describe('UserService', () => {
       const dto = { email: 'updated@test.com' };
       const updatedUser = { ...user, ...dto };
 
-      repository.preload.mockResolvedValue(updatedUser as User);
+      repository.preload.mockResolvedValue(updatedUser);
       repository.save.mockResolvedValue(updatedUser);
 
       const result = await service.update(user.id, dto);

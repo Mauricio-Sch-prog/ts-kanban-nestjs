@@ -5,19 +5,19 @@ import { CreateUserDto } from '../../../user/dto/create-user.dto';
 import { UpdateUserDto } from '../../../user/dto/update-user.dto';
 import { createUserMock } from 'src/test/factories/user.factory';
 
+let mockUserService = {
+  create: jest.fn(),
+  findAll: jest.fn(),
+  findOne: jest.fn(),
+  update: jest.fn(),
+  remove: jest.fn(),
+};
+
 describe('UserController', () => {
   let controller: UserController;
 
-  const mockUserService = {
-    create: jest.fn(),
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-    update: jest.fn(),
-    remove: jest.fn(),
-  };
-
   beforeEach(async () => {
-    const mockUserService = {
+    mockUserService = {
       create: jest.fn(),
       findAll: jest.fn(),
       findOne: jest.fn(),
