@@ -44,11 +44,10 @@ describe('UserController', () => {
 
   describe('create', () => {
     const dto: CreateUserDto = {
-        email: 'test@test.com',
-        password: '123456',
-      };
+      email: 'test@test.com',
+      password: '123456',
+    };
     it('should create a user', async () => {
-      
       const mockUser = createUserMock();
 
       mockUserService.create.mockResolvedValue(mockUser);
@@ -58,12 +57,11 @@ describe('UserController', () => {
       expect(mockUserService.create).toHaveBeenCalledWith(dto);
       expect(result).toEqual(mockUser);
     });
-      it('should propagate error from service', async () => {
-        mockUserService.create.mockRejectedValue(new Error('fail'));
+    it('should propagate error from service', async () => {
+      mockUserService.create.mockRejectedValue(new Error('fail'));
 
-        await expect(controller.create(dto)).rejects.toThrow('fail');
-        expect(mockUserService.create).toHaveBeenCalledWith(dto);
-      });
+      await expect(controller.create(dto)).rejects.toThrow('fail');
+      expect(mockUserService.create).toHaveBeenCalledWith(dto);
     });
   });
 
