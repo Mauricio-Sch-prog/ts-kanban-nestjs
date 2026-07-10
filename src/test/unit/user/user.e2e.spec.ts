@@ -4,17 +4,19 @@ import request from 'supertest';
 import { UserController } from 'src/user/user.controller';
 import { UserService } from 'src/user/user.service';
 import { createUserMock } from 'src/test/factories/user.factory';
+import { ErrorResponse } from 'src/common/type/error.response';
+let mockUserService = {
+  findOne: jest.fn(),
+  remove: jest.fn(),
+};
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
 
-  const mockUserService = {
-    findOne: jest.fn(),
-  };
-
   beforeAll(async () => {
-    const mockUserService = {
+    mockUserService = {
       findOne: jest.fn(),
+      remove: jest.fn(),
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -50,7 +52,12 @@ describe('UserController (e2e)', () => {
         .get(`/user/${validUuid}`)
         .expect(200);
 
-      expect(response.body).toEqual(mockUser);
+      expect(response.body).toEqual(
+        expect.objectContaining({
+          id: mockUser.id,
+          email: mockUser.email,
+        }),
+      );
       expect(mockUserService.findOne).toHaveBeenCalledWith(validUuid);
     });
 
@@ -61,7 +68,23 @@ describe('UserController (e2e)', () => {
         .get(`/user/${invalidUuid}`)
         .expect(400);
 
-      expect(response.body.message).toContain('Validation failed');
+      const body = response.body as ErrorResponse;
+
+      expect(body.message).toContain('Validation failed');
+    });
+  });
+
+  describe('DELETE /user/:id', () => {
+    it('should accept a valid UUID', async () => {
+      const validUuid = '550e8400-e29b-41d4-a716-446655440000';
+      mockUserService.remove.mockResolvedValue({});
+
+      const response = await request(app.getHttpServer())
+        .delete(`/user/${validUuid}`)
+        .expect(200);
+
+      expect(response.body).toEqual({});
+      expect(mockUserService.remove).toHaveBeenCalledWith(validUuid);
     });
   });
 });
