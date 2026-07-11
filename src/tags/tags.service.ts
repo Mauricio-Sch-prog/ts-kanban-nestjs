@@ -19,6 +19,14 @@ export class TagsService {
     private taskRepository: Repository<Task>,
   ) {}
 
+  private async ValidateById(id: string) {
+    const tag = await this.tagsRepo.findOne({ where: { id: id } });
+    if (!tag) {
+      throw new NotFoundException(`Tag with ID "${id}" not found`);
+    }
+    return tag;
+  }
+
   async create(createTagDto: CreateTagDto, userId: string) {
     const task = await this.taskRepository.findOne({
       where: { id: createTagDto.task, user: { id: userId } },
@@ -38,9 +46,8 @@ export class TagsService {
     return tags;
   }
 
-  findOne(id: string) {
-    const tag = this.tagsRepo.findOne({ where: { id: id } });
-    return tag;
+  async findOne(id: string) {
+    return await this.ValidateById(id);
   }
 
   findTaskTags(id: string) {
@@ -61,19 +68,18 @@ export class TagsService {
       if (!task) throw new ForbiddenException("Task doesn't belong to user");
     }
 
-    const tag = await this.tagsRepo.findOne({ where: { id: id } });
-    if (!tag) throw new NotFoundException(`Tag with ID "${id}" not found`);
+    const tag = await this.ValidateById(id);
+
     Object.assign(tag, updateTagDto);
 
     return await this.tagsRepo.save(tag);
   }
 
   async remove(id: string) {
-    const tag = await this.tagsRepo.findOne({ where: { id } });
-    if (!tag) {
-      throw new NotFoundException(`Tag with ID "${id}" not found`);
-    }
+    const tag = await this.ValidateById(id);
+
     await this.tagsRepo.softRemove(tag);
+
     return { message: 'Tag removed succesfully' };
   }
 }

@@ -8,6 +8,14 @@ import { BoardScopedRepository } from './board.scoped.repository';
 export class BoardService {
   constructor(private readonly boardRepo: BoardScopedRepository) {}
 
+  private async ValidateById(id: string) {
+    const board = await this.boardRepo.findOne({ where: { id: id } });
+    if (!board) {
+      throw new NotFoundException(`Board with ID "${id}" not found`);
+    }
+    return board;
+  }
+
   async create(createBoardDto: CreateBoardDto) {
     const newBoard = await this.boardRepo.save({
       ...createBoardDto,
@@ -20,29 +28,21 @@ export class BoardService {
     return boards;
   }
 
-  findOne(id: string) {
-    const board = this.boardRepo.findOne({ where: { id: id } });
-    return board;
+  async findOne(id: string) {
+    return await this.ValidateById(id);
   }
 
   async update(id: string, updateBoardDto: UpdateBoardDto): Promise<Board> {
-    const board = await this.boardRepo.findOne({ where: { id: id } });
-    if (!board) {
-      throw new NotFoundException(`Board with ID "${id}" not found`);
-    }
+    const board = await this.ValidateById(id);
     Object.assign(board, updateBoardDto);
 
     return this.boardRepo.save(board);
   }
 
   async remove(id: string) {
-    const board = await this.boardRepo.findOne({ where: { id } });
-
-    if (!board) {
-      throw new NotFoundException(`Board with ID "${id}" not found`);
-    }
+    const board = await this.ValidateById(id);
 
     await this.boardRepo.softRemove(board);
-    return { message: 'Board removed succesfully' };
+    return { message: 'Succesfully' };
   }
 }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -14,13 +18,22 @@ export class UserService {
   ) {}
   private readonly saltRounds = 12;
 
-  async hashPassword(password: string): Promise<string> {
+  private async hashPassword(password: string): Promise<string> {
     return await bcrypt.hash(password, this.saltRounds);
   }
 
+  private async ValidateById(id: string) {
+    const user = await this.userRepository.findOneBy({ id: id });
+    if (!user) {
+      throw new NotFoundException(`User with ID "${id}" not found`);
+    }
+    return user;
+  }
+
   async create(createUserDto: CreateUserDto) {
-    console.log(createUserDto);
     const hashedPassword = await this.hashPassword(createUserDto.password);
+    const existingUser = await this.findByEmail(createUserDto.email);
+    if (existingUser) throw new UnauthorizedException('email already in use');
     const user = this.userRepository.create({
       ...createUserDto,
       password: hashedPassword,
@@ -33,9 +46,8 @@ export class UserService {
     return users;
   }
 
-  findOne(id: string) {
-    const user = this.userRepository.findOneBy({ id: id });
-    return user;
+  async findOne(id: string) {
+    return await this.ValidateById(id);
   }
 
   findByEmail(email: string) {
@@ -51,21 +63,13 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.userRepository.preload({
-      id: id,
-      ...updateUserDto,
-    });
-    if (!user) {
-      throw new NotFoundException(`User with ID "${id}" not found`);
-    }
-    return this.userRepository.save(user);
+    const user = await this.ValidateById(id);
+    Object.assign(user, updateUserDto);
+    return await this.userRepository.save(user);
   }
 
   async remove(id: string) {
-    const user = await this.userRepository.findOneBy({ id });
-    if (!user) {
-      throw new NotFoundException(`User with ID "${id}" not found`);
-    }
+    const user = await this.ValidateById(id);
     await this.userRepository.softRemove(user);
   }
 }
