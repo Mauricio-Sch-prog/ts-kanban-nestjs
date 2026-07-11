@@ -4,5 +4,6 @@ export const createUserMock = (overrides = {}) => ({
   ...createBaseMock(),
   email: faker.internet.email(),
   password: faker.internet.password(),
+  name: faker.internet.userName(),
   ...overrides,
 });

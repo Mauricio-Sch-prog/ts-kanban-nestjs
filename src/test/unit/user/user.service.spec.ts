@@ -6,6 +6,7 @@ import { User } from '../../../user/entities/user.entity';
 import { NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { createUserMock } from '../../factories/user.factory';
+import { UpdateUserDto } from 'src/user/dto/update-user.dto';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
@@ -15,17 +16,16 @@ describe('UserService', () => {
   let service: UserService;
   let repository: jest.Mocked<Repository<User>>;
 
-  const mockRepository: Partial<jest.Mocked<Repository<User>>> = {
-    create: jest.fn(),
-    save: jest.fn(),
-    find: jest.fn(),
-    findOneBy: jest.fn(),
-    findOne: jest.fn(),
-    preload: jest.fn(),
-    softRemove: jest.fn(),
-  };
-
   beforeEach(async () => {
+    const mockRepository: Partial<jest.Mocked<Repository<User>>> = {
+      create: jest.fn(),
+      save: jest.fn(),
+      find: jest.fn(),
+      findOneBy: jest.fn(),
+      findOne: jest.fn(),
+      preload: jest.fn(),
+      softRemove: jest.fn(),
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
@@ -94,33 +94,84 @@ describe('UserService', () => {
       expect(repository.findOneBy).toHaveBeenCalledWith({ id: user.id });
       expect(result).toEqual(user);
     });
+
+    it('should throw NotFoundException if user not found', async () => {
+      const invalidId = 'non-existent-id';
+      repository.findOneBy.mockResolvedValue(null);
+
+      await expect(service.findOne(invalidId)).rejects.toThrow(
+        NotFoundException,
+      );
+
+      expect(repository.findOneBy).toHaveBeenCalledWith({
+        id: invalidId,
+      });
+    });
+  });
+
+  describe('findByEmail', () => {
+    it('find user by email and return user', async () => {
+      const email = 'faker@gmail.com';
+      const user = createUserMock({ email: email });
+      const selectedUser = {
+        id: user.id,
+        email: user.email,
+        password: user.password,
+        name: user.name,
+      };
+
+      repository.findOne.mockResolvedValue(selectedUser as User);
+
+      const result = await service.findByEmail(email);
+
+      expect(repository.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { email } }),
+      );
+      expect(result).toEqual(selectedUser);
+    });
+    it('Should return null if user not found', async () => {
+      const invalidEmail = 'notagood@gmail.com';
+      repository.findOne.mockResolvedValue(null);
+
+      const result = await service.findByEmail(invalidEmail);
+
+      expect(repository.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { email: invalidEmail } }),
+      );
+      expect(result).toEqual(null);
+    });
   });
 
   describe('update', () => {
     it('should update and return user', async () => {
-      const user = createUserMock();
-      const dto = { email: 'updated@test.com' };
-      const updatedUser = { ...user, ...dto };
+      const dto: UpdateUserDto = { name: 'BornAnew' };
+      const existingUser = createUserMock({ name: 'not really a name' });
+      const updatedUser = { ...existingUser, ...dto };
 
-      repository.preload.mockResolvedValue(updatedUser);
+      repository.findOneBy.mockResolvedValue(existingUser);
       repository.save.mockResolvedValue(updatedUser);
 
-      const result = await service.update(user.id, dto);
+      const result = await service.update(existingUser.id, dto);
 
-      expect(repository.preload).toHaveBeenCalledWith({
-        id: user.id,
-        ...dto,
-      });
       expect(repository.save).toHaveBeenCalledWith(updatedUser);
+      expect(repository.findOneBy).toHaveBeenCalledWith({
+        id: existingUser.id,
+      });
       expect(result).toEqual(updatedUser);
     });
 
-    it('should throw if user not found', async () => {
-      repository.preload.mockResolvedValue(undefined);
+    it('should throw NotFoundException if user not found', async () => {
+      const invalidId = 'non-existent-id';
+      repository.findOneBy.mockResolvedValue(null);
 
-      await expect(service.update('non-existent-id', {})).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.update(invalidId, { name: 'wrong' }),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(repository.findOneBy).toHaveBeenCalledWith({
+        id: invalidId,
+      });
+      expect(repository.save).not.toHaveBeenCalled();
     });
   });
 
@@ -137,12 +188,13 @@ describe('UserService', () => {
       expect(repository.softRemove).toHaveBeenCalledWith(user);
     });
 
-    it('should throw if user not found', async () => {
+    it('should throw NotFoundException if user not found', async () => {
       repository.findOneBy.mockResolvedValue(null);
 
       await expect(service.remove('non-existent-id')).rejects.toThrow(
         NotFoundException,
       );
+      expect(repository.softRemove).not.toHaveBeenCalled();
     });
   });
 });
