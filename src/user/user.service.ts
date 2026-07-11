@@ -50,11 +50,13 @@ export class UserService {
     return await this.ValidateById(id);
   }
 
-  findByEmail(email: string) {
-    const user = this.userRepository.findOne({
+  async findByEmail(email: string) {
+    const user = await this.userRepository.findOne({
       where: { email },
+      withDeleted: true,
       select: {
         id: true,
+        name: true,
         email: true,
         password: true,
       },
