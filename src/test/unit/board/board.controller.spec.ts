@@ -91,14 +91,14 @@ describe('BoardController', () => {
       };
       const mockBoard = createBoardMock();
 
-      const updatedUser = { ...mockBoard, ...dto };
+      const updateBoard = { ...mockBoard, ...dto };
 
-      mockBoardService.update.mockResolvedValue(updatedUser);
+      mockBoardService.update.mockResolvedValue(updateBoard);
 
       const result = await controller.update('uuid-123', dto);
 
       expect(mockBoardService.update).toHaveBeenCalledWith('uuid-123', dto);
-      expect(result).toEqual(updatedUser);
+      expect(result).toEqual(updateBoard);
     });
   });
 
