@@ -33,7 +33,7 @@ export class AuthGuard implements CanActivate {
 
     const user = await this.authService.validateToken(token);
 
-    if (!user) throw new UnauthorizedException('Invalid user id');
+    if (!user) throw new UnauthorizedException('Invalid token');
 
     request.user = user;
 

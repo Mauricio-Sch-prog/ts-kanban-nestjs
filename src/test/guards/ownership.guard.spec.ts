@@ -1,7 +1,6 @@
-import { Reflector } from '@nestjs/core';
-import { DataSource } from 'typeorm';
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { OwnershipGuard } from 'src/common/guard/owrnership.guard';
+import { AuthenticatedRequest } from 'src/common/interface/authenticatedRequest.interface';
 
 describe('OwnershipGuard', () => {
   let guard: OwnershipGuard;
@@ -24,13 +23,14 @@ describe('OwnershipGuard', () => {
     guard = new OwnershipGuard(mockReflector as any, mockDataSource as any);
   });
 
-  const createContext = (request: any): ExecutionContext =>
-    ({
-      switchToHttp: () => ({
-        getRequest: () => request,
-      }),
-      getHandler: jest.fn(),
-    }) as any;
+  const createContext = (
+    request: Partial<AuthenticatedRequest>,
+  ): ExecutionContext => ({
+    switchToHttp: () => ({
+      getRequest: () => request,
+    }),
+    getHandler: jest.fn(),
+  });
 
   it('should allow if no ownership metadata', async () => {
     mockReflector.get.mockReturnValue(undefined);
