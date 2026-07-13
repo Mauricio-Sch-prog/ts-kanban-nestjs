@@ -26,18 +26,36 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
       envFilePath: '.env',
       validate,
     }),
+    ...(process.env.NODE_ENV !== 'test'
+      ? [
+          TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => ({
+              type: 'postgres',
+              entities: [User, Board, Lane, Task, Tag],
+              url: configService.get<string>('DATABASE_URL'),
+              autoLoadEntities: true,
+              synchronize: process.env.NODE_ENV !== 'production',
+            }),
+          }),
+        ]
+      : []),
 
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        entities: [User, Board, Lane, Task, Tag],
-        url: configService.get<string>('DATABASE_URL'),
-        autoLoadEntities: true,
-        synchronize: configService.get<string>('NODE_ENV') !== 'production',
-      }),
-    }),
+    // TypeOrmModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: (configService: ConfigService) => {
+    //     const env = configService.get<string>('NODE_ENV');
+    //     return {
+    //       type: 'postgres',
+    //       entities: [User, Board, Lane, Task, Tag],
+    //       url: configService.get<string>('DATABASE_URL'),
+    //       autoLoadEntities: true,
+    //       synchronize: env !== 'production',
+    //     };
+    //   },
+    // }),
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60000, limit: 10 }],
     }),
