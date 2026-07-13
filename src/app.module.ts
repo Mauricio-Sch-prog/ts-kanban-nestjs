@@ -23,7 +23,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
       validate,
     }),
     ...(process.env.NODE_ENV !== 'test'
@@ -42,22 +42,9 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
         ]
       : []),
 
-    // TypeOrmModule.forRootAsync({
-    //   imports: [ConfigModule],
-    //   inject: [ConfigService],
-    //   useFactory: (configService: ConfigService) => {
-    //     const env = configService.get<string>('NODE_ENV');
-    //     return {
-    //       type: 'postgres',
-    //       entities: [User, Board, Lane, Task, Tag],
-    //       url: configService.get<string>('DATABASE_URL'),
-    //       autoLoadEntities: true,
-    //       synchronize: env !== 'production',
-    //     };
-    //   },
-    // }),
     ThrottlerModule.forRoot({
-      throttlers: [{ ttl: 60000, limit: 10 }],
+      throttlers:
+        process.env.NODE_ENV === 'test' ? [] : [{ ttl: 60000, limit: 10 }],
     }),
 
     AuthModule,
