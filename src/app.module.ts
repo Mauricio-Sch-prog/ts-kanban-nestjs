@@ -19,14 +19,15 @@ import { AuthGuard } from './auth/guards/auth.guard';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 
+const env = process.env.NODE_ENV;
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
+      envFilePath: env === 'test' ? '.env.test' : '.env',
       validate,
     }),
-    ...(process.env.NODE_ENV !== 'test'
+    ...(env !== 'test'
       ? [
           TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
@@ -36,15 +37,14 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
               entities: [User, Board, Lane, Task, Tag],
               url: configService.get<string>('DATABASE_URL'),
               autoLoadEntities: true,
-              synchronize: process.env.NODE_ENV !== 'production',
+              synchronize: env !== 'production',
             }),
           }),
         ]
       : []),
 
     ThrottlerModule.forRoot({
-      throttlers:
-        process.env.NODE_ENV === 'test' ? [] : [{ ttl: 60000, limit: 10 }],
+      throttlers: env === 'test' ? [] : [{ ttl: 60000, limit: 10 }],
     }),
 
     AuthModule,
@@ -71,6 +71,8 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes('*');
+    if (env !== 'test') {
+      consumer.apply(LoggerMiddleware).forRoutes('*');
+    }
   }
 }
