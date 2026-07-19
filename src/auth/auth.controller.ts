@@ -1,8 +1,10 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import type { Response } from 'express';
 import { Public } from 'src/common/decorator/public.decorator';
+import { CurrentUser } from 'src/common/decorator/currentUser.decorator';
+import type { AuthenticatedUser } from 'src/common/type/authenticatedUser.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -23,6 +25,12 @@ export class AuthController {
       maxAge: 1000 * 60 * 60 * 2,
     });
 
-    return;
+    return 'Logged succesfully';
+  }
+
+  @Public()
+  @Get()
+  check(@CurrentUser() user: AuthenticatedUser | null) {
+    return user;
   }
 }
