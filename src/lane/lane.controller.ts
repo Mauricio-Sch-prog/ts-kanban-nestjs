@@ -13,7 +13,7 @@ import { LaneService } from './lane.service';
 import { CreateLaneDto } from './dto/create-lane.dto';
 import { UpdateLaneDto } from './dto/update-lane.dto';
 import { CurrentUser } from 'src/common/decorator/currentUser.decorator';
-import type { AuthenticatedUser } from 'src/common/interface/authenticatedUser.interface';
+import type { AuthenticatedUser } from 'src/common/type/authenticatedUser.interface';
 import { CheckOwnership } from 'src/common/decorator/ownershipOptions.decorator';
 import { Lane } from './entities/lane.entity';
 import { Board } from 'src/board/entities/board.entity';

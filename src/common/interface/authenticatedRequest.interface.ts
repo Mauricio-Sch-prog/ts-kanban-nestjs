@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { AuthenticatedUser } from './authenticatedUser.interface';
+import { AuthenticatedUser } from '../type/authenticatedUser.interface';
 
 export interface AuthenticatedRequest extends Request {
   user: AuthenticatedUser;

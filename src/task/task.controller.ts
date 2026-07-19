@@ -14,7 +14,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { CurrentUser } from 'src/common/decorator/currentUser.decorator';
-import type { AuthenticatedUser } from 'src/common/interface/authenticatedUser.interface';
+import type { AuthenticatedUser } from 'src/common/type/authenticatedUser.interface';
 import { CheckOwnership } from 'src/common/decorator/ownershipOptions.decorator';
 import { Task } from './entities/task.entity';
 import { Lane } from 'src/lane/entities/lane.entity';
