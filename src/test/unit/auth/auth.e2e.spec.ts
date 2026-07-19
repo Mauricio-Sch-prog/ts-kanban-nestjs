@@ -1,64 +1,185 @@
 import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import request from 'supertest';
+import request, { Response } from 'supertest';
 
-import { AppModule } from 'src/app.module';
-import { DataSource } from 'typeorm';
+import { appFactory } from 'src/test/factories/app.factory';
+import { ApiResponse } from 'src/common/type/api.response';
+import { User } from 'src/user/entities/user.entity';
+import { ErrorResponse } from 'src/common/type/error.response';
 
+let cookies: string[];
 describe('Auth (e2e)', () => {
   let app: INestApplication;
-  let dataSource: DataSource;
   const http = () => request(app.getHttpServer());
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        AppModule,
-        TypeOrmModule.forRoot({
-          type: 'postgres',
-          url: process.env.TEST_DATABASE_URL,
-          autoLoadEntities: true,
-          synchronize: true,
-          dropSchema: true,
-        }),
-      ],
-    }).compile();
-
-    dataSource = moduleFixture.get(DataSource);
-    app = moduleFixture.createNestApplication();
+    app = await appFactory();
     await app.init();
-  });
 
-  beforeEach(async () => {
-    await dataSource.synchronize(true);
+    const res = await logIn({});
+    cookies = getCookies(res);
   });
 
   afterAll(async () => {
-    await app.close();
+    if (app) {
+      await app.close();
+    }
   });
+
+  const logIn = async (
+    overrides: Partial<User> = {},
+    mode: 'logOnly' | 'createOnly' | 'both' = 'both',
+  ) => {
+    if (mode === 'createOnly') {
+      return await http()
+        .post('/user')
+        .send({
+          email: overrides.email ?? 'verynice@gmail.com',
+          password: overrides.password ?? 'Tonariniitara12',
+        });
+    }
+
+    if (mode === 'logOnly') {
+      return await http()
+        .post('/auth')
+        .send({
+          email: overrides.email ?? 'verynice@gmail.com',
+          password: overrides.password ?? 'Tonariniitara12',
+        });
+    }
+
+    await http()
+      .post('/user')
+      .send({
+        email: overrides.email ?? 'verynice@gmail.com',
+        password: overrides.password ?? 'Tonariniitara12',
+      });
+
+    return await http()
+      .post('/auth')
+      .send({
+        email: overrides.email ?? 'verynice@gmail.com',
+        password: overrides.password ?? 'Tonariniitara12',
+      });
+  };
+
+  const getCookies = (res: Response): string[] => {
+    const cookies = res.headers['set-cookie'];
+
+    if (!Array.isArray(cookies)) {
+      return [];
+    }
+
+    return cookies;
+  };
 
   describe('should register and login user', () => {
     it('should register and login', async () => {
-      await http()
-        .post('/user')
-        .send({
-          email: 'test@test.com',
-          password: '123456',
-        })
-        .expect(201);
-
-      const res = await http()
-        .post('/auth')
-        .send({
-          email: 'test@test.com',
-          password: '123456',
-        })
-        .expect(201);
-
-      expect(res.headers['set-cookie']).toEqual(
-        expect.arrayContaining([expect.stringContaining('access_token')]),
+      const res = await logIn({
+        email: 'newUserForKanbanNestJs@gmail.com',
+        password: 'passwordIsVeryImportantForAnySecureApp',
+      });
+      const cookies = res.headers['set-cookie'];
+      expect(cookies).toBeDefined();
+      const accessCookie = (cookies as unknown as string[]).find((cookie) =>
+        cookie.startsWith('access_token'),
       );
+      expect(res.status).toEqual(201);
+      expect(accessCookie).toContain('HttpOnly');
+      expect(accessCookie).toContain('SameSite=Lax');
+    });
+    it('should refuse invalid email', async () => {
+      const res = await logIn(
+        {
+          email: 'notAnEmail',
+          password: 'doesPasswordStillMatters?',
+        },
+        'createOnly',
+      );
+      expect(res.status).toEqual(400);
+      expect(res.headers['set-cookie']).not.toBeDefined();
+    });
+
+    it('should refuse weak password', async () => {
+      const res = await logIn(
+        {
+          email: 'thisTimeItsAnActualEmail@gmail.com',
+          password: 'meek',
+        },
+        'createOnly',
+      );
+      expect(res.status).toEqual(400);
+      expect(res.headers['set-cookie']).not.toBeDefined();
+    });
+
+    it('should refuse wrong password in login', async () => {
+      const res = await logIn(
+        {
+          email: 'newUserForKanbanNestJs@gmail.com',
+          password: 'passwordIsVeryImportantForAnySecure',
+        },
+        'logOnly',
+      );
+      expect(res.status).toEqual(401);
+      expect(res.headers['set-cookie']).not.toBeDefined();
+    });
+
+    it('should refuse wrong email in login', async () => {
+      const res = await logIn(
+        {
+          email: 'newUserForKanbanNest2s@gmail.com',
+          password: 'passwordIsVeryImportantForAnySecureApp',
+        },
+        'logOnly',
+      );
+      expect(res.status).toEqual(401);
+      expect(res.headers['set-cookie']).not.toBeDefined();
+    });
+  });
+
+  describe('should check and return logged user data', () => {
+    it('should have a logged user', async () => {
+      const res = await http().get('/auth').set('Cookie', cookies).expect(200);
+      const body = res.body as ApiResponse;
+
+      expect(body.data).toBeDefined();
+    });
+
+    it('should have no logged user', async () => {
+      const res = await http().get('/auth').expect(200);
+      const body = res.body as ApiResponse;
+
+      expect(body.data).not.toBeDefined();
+    });
+  });
+
+  describe('Auth should validate cookies', () => {
+    it('should have valid cookies', async () => {
+      const res = await http().get('/board').set('Cookie', cookies).expect(200);
+      const body = res.body as ApiResponse;
+
+      expect(body.data).toEqual([]);
+    });
+
+    it('should have invalid cookies', async () => {
+      const res = await http().get('/board').expect(401);
+      const body = res.body as ErrorResponse;
+
+      expect(body.error).toEqual('UnauthorizedException');
+    });
+
+    it('should have malformed token', async () => {
+      const malformedCookies = cookies.map((cookie) =>
+        cookie.startsWith('access_token')
+          ? cookie.replace(/access_token=[^;]+/, 'access_token=invalid_token')
+          : cookie,
+      );
+      const res = await http()
+        .get('/board')
+        .set('Cookie', malformedCookies)
+        .expect(401);
+      const body = res.body as ErrorResponse;
+
+      expect(body.error).toEqual('UnauthorizedException');
     });
   });
 });
