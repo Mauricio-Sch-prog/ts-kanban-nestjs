@@ -22,18 +22,35 @@ export class AuthGuard implements CanActivate {
       context.getClass(),
     ]);
 
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    const token = request?.cookies['access_token'] as string | undefined;
+
     if (isPublic) {
+      if (!token) {
+        return true;
+      }
+
+      try {
+        const user = await this.authService.validateToken(token);
+        if (user) {
+          request.user = user;
+        }
+      } catch {
+        return true;
+      }
+
       return true;
     }
 
-    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    const token = request.cookies['access_token'] as string | undefined;
-
-    if (!token) throw new UnauthorizedException('Missing token');
+    if (!token) {
+      throw new UnauthorizedException('Missing token');
+    }
 
     const user = await this.authService.validateToken(token);
 
-    if (!user) throw new UnauthorizedException('Invalid token');
+    if (!user) {
+      throw new UnauthorizedException('Invalid token');
+    }
 
     request.user = user;
 
