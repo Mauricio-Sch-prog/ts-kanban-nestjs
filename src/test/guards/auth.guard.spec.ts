@@ -30,16 +30,16 @@ describe('AuthGuard', () => {
     getClass: jest.fn(),
   });
 
-  it('should allow if public metadata', async () => {
+  it('should allow if public metadata and no valid cookie', async () => {
     mockReflector.getAllAndOverride.mockReturnValue(true);
 
-    const context = createContext({});
+    const context = createContext({ cookies: { access_token: undefined } });
 
     await expect(guard.canActivate(context)).resolves.toBe(true);
     expect(mockAuthService.validateToken).not.toHaveBeenCalled();
   });
 
-  it('should throw if invalid token', async () => {
+  it('should throw if invalid token and no public', async () => {
     const cookie = 'invalid jwt token';
     mockReflector.getAllAndOverride.mockReturnValue(false);
 
@@ -54,6 +54,7 @@ describe('AuthGuard', () => {
 
     expect(mockAuthService.validateToken).toHaveBeenCalledWith(cookie);
   });
+
   it('should throw if token belongs to deleted/nonexistent user', async () => {
     const token = 'valid-but-user-does-not-exist';
 
