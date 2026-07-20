@@ -1,5 +1,5 @@
-export type ApiResponse = {
+export type ApiResponse<T = unknown> = {
   success: boolean;
   message: string;
-  data: [];
+  data: T;
 };
