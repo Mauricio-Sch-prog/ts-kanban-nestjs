@@ -1,10 +1,11 @@
 import { INestApplication } from '@nestjs/common';
-import request, { Response } from 'supertest';
+import request from 'supertest';
 
 import { appFactory } from 'src/test/factories/app.factory';
 import { ApiResponse } from 'src/common/type/api.response';
-import { User } from 'src/user/entities/user.entity';
 import { ErrorResponse } from 'src/common/type/error.response';
+import { getCookies } from 'src/test/utils/getCookies';
+import { loginRequest } from 'src/test/utils/loginRequest';
 
 let cookies: string[];
 describe('Auth (e2e)', () => {
@@ -15,7 +16,7 @@ describe('Auth (e2e)', () => {
     app = await appFactory();
     await app.init();
 
-    const res = await logIn({});
+    const res = await loginRequest(app, {});
     cookies = getCookies(res);
   });
 
@@ -25,56 +26,9 @@ describe('Auth (e2e)', () => {
     }
   });
 
-  const logIn = async (
-    overrides: Partial<User> = {},
-    mode: 'logOnly' | 'createOnly' | 'both' = 'both',
-  ) => {
-    if (mode === 'createOnly') {
-      return await http()
-        .post('/user')
-        .send({
-          email: overrides.email ?? 'verynice@gmail.com',
-          password: overrides.password ?? 'Tonariniitara12',
-        });
-    }
-
-    if (mode === 'logOnly') {
-      return await http()
-        .post('/auth')
-        .send({
-          email: overrides.email ?? 'verynice@gmail.com',
-          password: overrides.password ?? 'Tonariniitara12',
-        });
-    }
-
-    await http()
-      .post('/user')
-      .send({
-        email: overrides.email ?? 'verynice@gmail.com',
-        password: overrides.password ?? 'Tonariniitara12',
-      });
-
-    return await http()
-      .post('/auth')
-      .send({
-        email: overrides.email ?? 'verynice@gmail.com',
-        password: overrides.password ?? 'Tonariniitara12',
-      });
-  };
-
-  const getCookies = (res: Response): string[] => {
-    const cookies = res.headers['set-cookie'];
-
-    if (!Array.isArray(cookies)) {
-      return [];
-    }
-
-    return cookies;
-  };
-
   describe('should register and login user', () => {
     it('should register and login', async () => {
-      const res = await logIn({
+      const res = await loginRequest(app, {
         email: 'newUserForKanbanNestJs@gmail.com',
         password: 'passwordIsVeryImportantForAnySecureApp',
       });
@@ -88,7 +42,8 @@ describe('Auth (e2e)', () => {
       expect(accessCookie).toContain('SameSite=Lax');
     });
     it('should refuse invalid email', async () => {
-      const res = await logIn(
+      const res = await loginRequest(
+        app,
         {
           email: 'notAnEmail',
           password: 'doesPasswordStillMatters?',
@@ -100,7 +55,8 @@ describe('Auth (e2e)', () => {
     });
 
     it('should refuse weak password', async () => {
-      const res = await logIn(
+      const res = await loginRequest(
+        app,
         {
           email: 'thisTimeItsAnActualEmail@gmail.com',
           password: 'meek',
@@ -112,7 +68,8 @@ describe('Auth (e2e)', () => {
     });
 
     it('should refuse wrong password in login', async () => {
-      const res = await logIn(
+      const res = await loginRequest(
+        app,
         {
           email: 'newUserForKanbanNestJs@gmail.com',
           password: 'passwordIsVeryImportantForAnySecure',
@@ -124,7 +81,8 @@ describe('Auth (e2e)', () => {
     });
 
     it('should refuse wrong email in login', async () => {
-      const res = await logIn(
+      const res = await loginRequest(
+        app,
         {
           email: 'newUserForKanbanNest2s@gmail.com',
           password: 'passwordIsVeryImportantForAnySecureApp',
