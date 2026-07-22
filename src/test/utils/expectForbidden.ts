@@ -22,10 +22,10 @@ export const expectForbidden = async (
   createRequest: createRequestFunc,
   forbiddenRequest: forbiddenRequestFunc,
 ) => {
-  const user1 = await loginRequest(app, { email: 'a@test.com' });
+  const user1 = await loginRequest(app);
   const cookies1 = getCookies(user1);
 
-  const user2 = await loginRequest(app, { email: 'b@test.com' });
+  const user2 = await loginRequest(app);
   const cookies2 = getCookies(user2);
 
   const product = await createRequest(app, cookies1);
