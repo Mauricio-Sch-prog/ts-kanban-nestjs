@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from 'src/common/interface/authenticatedRequest.
 
 describe('OwnershipGuard', () => {
   let guard: OwnershipGuard;
+  const validUuid = '3f9c2a8e-6d41-4b7f-9e2c-5a1d8f0b7c62';
 
   const mockReflector = {
     get: jest.fn(),
@@ -83,14 +84,14 @@ describe('OwnershipGuard', () => {
 
     const context = createContext({
       user: { id: 'user-1' },
-      params: { id: 'resource-1' },
+      params: { id: validUuid },
     });
 
     await expect(guard.canActivate(context)).rejects.toThrow(
       'You do not own this resource',
     );
 
-    expect(whereMock).toHaveBeenCalledWith('user-1', 'resource-1');
+    expect(whereMock).toHaveBeenCalledWith('user-1', validUuid);
     expect(mockRepository.findOne).toHaveBeenCalled();
   });
 
@@ -103,11 +104,11 @@ describe('OwnershipGuard', () => {
       where: whereMock,
     });
 
-    mockRepository.findOne.mockResolvedValue({ id: 'resource-1' });
+    mockRepository.findOne.mockResolvedValue({ id: validUuid });
 
     const context = createContext({
       user: { id: 'user-1' },
-      params: { boardId: 'resource-1' },
+      params: { boardId: validUuid },
     });
 
     await expect(guard.canActivate(context)).resolves.toBe(true);
