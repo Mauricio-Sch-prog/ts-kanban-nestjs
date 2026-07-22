@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
@@ -11,6 +12,7 @@ import {
   OwnershipOptions,
 } from '../decorator/ownershipOptions.decorator';
 import { AuthenticatedRequest } from '../interface/authenticatedRequest.interface';
+import { validate as isUUID } from 'uuid';
 
 @Injectable()
 export class OwnershipGuard implements CanActivate {
@@ -37,6 +39,10 @@ export class OwnershipGuard implements CanActivate {
     const resourceId = request.params[paramKey];
     if (!resourceId) {
       throw new ForbiddenException('Missing resource identifier');
+    }
+
+    if (!(isUUID as (v: string) => boolean)(resourceId)) {
+      throw new BadRequestException('Invalid UUID');
     }
     const repo = this.dataSource.getRepository(options.entity);
     const where = options.where(user.id, resourceId);
