@@ -1,123 +1,193 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { ErrorResponse } from 'src/common/type/error.response';
-import { createBoardMock } from 'src/test/factories/board.factory';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { BoardService } from 'src/board/board.service';
-import { BoardController } from 'src/board/board.controller';
-import { OwnershipGuard } from 'src/common/guard/owrnership.guard';
+import { appFactory } from 'src/test/factories/app.factory';
+import { ApiResponse } from 'src/common/type/api.response';
+import { Board } from 'src/board/entities/board.entity';
+import { getCookies } from 'src/test/utils/getCookies';
+import { expectUnauthorized } from 'src/test/utils/expect/expectUnauthorized';
+import { createBoard } from 'src/test/utils/createRequests/createBoard';
+import { loginRequest } from 'src/test/utils/loginRequest';
+import { expectForbidden } from 'src/test/utils/expect/expectForbidden';
+import { expectBadRequest } from 'src/test/utils/expect/expectBadRequest';
 
-jest.mock('src/auth/guards/auth.guard', () => ({
-  AuthGuard: () => ({
-    canActivate: jest.fn(() => true),
-  }),
-}));
-
-jest.mock('src/common/guard/owrnership.guard', () => ({
-  AuthGuard: () => ({
-    canActivate: jest.fn(() => true),
-  }),
-}));
-
-let mockBoardService = {
-  findOne: jest.fn(),
-  remove: jest.fn(),
-};
-
-describe('BoardController (e2e)', () => {
+let cookies: string[];
+describe('Board (e2e)', () => {
   let app: INestApplication;
+  const http = () => request(app.getHttpServer());
 
   beforeAll(async () => {
-    mockBoardService = {
-      findOne: jest.fn(),
-      remove: jest.fn(),
-    };
-
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      controllers: [BoardController],
-      providers: [
-        {
-          provide: BoardService,
-          useValue: mockBoardService,
-        },
-      ],
-    })
-      .overrideGuard(AuthGuard)
-      .useValue({ canActivate: jest.fn(() => true) })
-      .overrideGuard(OwnershipGuard)
-      .useValue({ canActivate: jest.fn(() => true) })
-      .compile();
-
-    app = moduleFixture.createNestApplication();
-
+    app = await appFactory();
     await app.init();
+
+    const res = await loginRequest(app);
+    cookies = getCookies(res);
   });
 
   afterAll(async () => {
     await app.close();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  describe('POST /board', () => {
+    it('should send dto and succesfully create board', async () => {
+      const res = await http()
+        .post('/board')
+        .set('Cookie', cookies)
+        .send({
+          name: 'a name for a new board',
+        })
+        .expect(201);
 
-  describe('GET /board/:id', () => {
-    it('should accept a valid UUID', async () => {
-      const validUuid = '550e8400-e29b-41d4-a716-446655440000';
-
-      const mockBoard = createBoardMock({ id: validUuid });
-      mockBoardService.findOne.mockResolvedValue(mockBoard);
-
-      const response = await request(app.getHttpServer())
-        .get(`/board/${validUuid}`)
-        .expect(200);
-
-      expect(response.body).toEqual(
-        expect.objectContaining({
-          id: mockBoard.id,
-          name: mockBoard.name,
-        }),
-      );
-      expect(mockBoardService.findOne).toHaveBeenCalledWith(validUuid);
+      const body = res.body as ApiResponse<Board>;
+      expect(body.success).toBe(true);
+      expect(body.data).toMatchObject({
+        name: 'a name for a new board',
+      });
     });
 
-    it('should reject an invalid UUID', async () => {
-      const invalidUuid = 'not-a-uuid';
-
-      const response = await request(app.getHttpServer())
-        .get(`/board/${invalidUuid}`)
+    it('should refuse invalid dto', async () => {
+      const res = await http()
+        .post('/board')
+        .set('Cookie', cookies)
+        .send()
         .expect(400);
 
-      const body = response.body as ErrorResponse;
+      const body = res.body as ErrorResponse;
 
-      expect(body.message).toContain('Validation failed');
+      expect(body.success).toEqual(false);
+    });
+
+    it('should throw when no cookies', async () => {
+      await expectUnauthorized(() =>
+        http().post('/board').send({
+          name: 'a name for a new board',
+        }),
+      );
     });
   });
 
-  describe('DELETE /board/:id', () => {
-    it('should accept a valid UUID', async () => {
-      const validUuid = '550e8400-e29b-41d4-a716-446655440000';
-      mockBoardService.remove.mockResolvedValue({});
+  describe('GET /board', () => {
+    it('Should succeed', async () => {
+      const res = await http().get('/board').set('Cookie', cookies).expect(200);
+      const body = res.body as ApiResponse<Board[]>;
+      expect(body.success).toBe(true);
+      expect(body.data).toBeDefined();
+    });
+    it('should throw when no cookies', async () => {
+      await expectUnauthorized(() => http().get('/board'));
+    });
+  });
 
-      const response = await request(app.getHttpServer())
-        .delete(`/board/${validUuid}`)
+  describe('GET /board:id', () => {
+    it('Should receive a valid id', async () => {
+      const board = await createBoard(app, cookies);
+
+      const res = await http()
+        .get(`/board/${board.id}`)
+        .set('Cookie', cookies)
         .expect(200);
+      const body = res.body as ApiResponse<Board>;
 
-      expect(response.body).toEqual({});
-      expect(mockBoardService.remove).toHaveBeenCalledWith(validUuid);
+      expect(body.success).toBe(true);
+    });
+
+    it('should refuse not owned boards', async () => {
+      await expectForbidden(
+        app,
+        createBoard,
+        async (id: string, badCookies: string[]) => {
+          return await http().get(`/board/${id}`).set('Cookie', badCookies);
+        },
+      );
+    });
+
+    it('should throw when no cookies', async () => {
+      const board = await createBoard(app, cookies);
+      await expectUnauthorized(() => http().get(`/board/${board.id}`));
+    });
+
+    it('should throw when at invalid uuid', async () => {
+      await expectBadRequest(() =>
+        http().get('/board/invalid-uuid').set('Cookie', cookies),
+      );
     });
   });
 
-  it('should reject an invalid UUID', async () => {
-    const invalidUuid = 'not-a-uuid';
+  describe('PATCH /board:id', () => {
+    const dto = { name: 'updateBoard' };
+    it('Should receive a valid id and valid dto', async () => {
+      const board = await createBoard(app, cookies);
 
-    const response = await request(app.getHttpServer())
-      .delete(`/board/${invalidUuid}`)
-      .expect(400);
+      const res = await http()
+        .patch(`/board/${board.id}`)
+        .send(dto)
+        .set('Cookie', cookies)
+        .expect(200);
+      const body = res.body as ApiResponse<Board>;
+      expect(body.success).toBe(true);
+      expect(body.data.name).toBe('updateBoard');
+    });
 
-    const body = response.body as ErrorResponse;
+    it('should refuse not owned boards', async () => {
+      await expectForbidden(
+        app,
+        createBoard,
+        async (id: string, badCookies: string[]) => {
+          return await http()
+            .patch(`/board/${id}`)
+            .send(dto)
+            .set('Cookie', badCookies);
+        },
+      );
+    });
 
-    expect(body.message).toContain('Validation failed');
+    it('should throw when no cookies', async () => {
+      const board = await createBoard(app, cookies);
+      await expectUnauthorized(() =>
+        http().patch(`/board/${board.id}`).send(dto),
+      );
+    });
+
+    it('should throw when at invalid uuid', async () => {
+      await expectBadRequest(() =>
+        http().patch('/board/invalid-uuid').send(dto).set('Cookie', cookies),
+      );
+    });
+  });
+
+  describe('DELETE /board:id', () => {
+    it('Should receive a valid id', async () => {
+      const board = await createBoard(app, cookies);
+
+      const res = await http()
+        .delete(`/board/${board.id}`)
+        .set('Cookie', cookies)
+        .expect(200);
+      const body = res.body as ApiResponse<Board>;
+      expect(body.data).toEqual({
+        message: 'Succesfully',
+      });
+    });
+
+    it('should refuse not owned boards', async () => {
+      await expectForbidden(
+        app,
+        createBoard,
+        async (id: string, badCookies: string[]) => {
+          return await http().delete(`/board/${id}`).set('Cookie', badCookies);
+        },
+      );
+    });
+
+    it('should throw when no cookies', async () => {
+      const board = await createBoard(app, cookies);
+      await expectUnauthorized(() => http().delete(`/board/${board.id}`));
+    });
+
+    it('should throw when at invalid uuid', async () => {
+      await expectBadRequest(() =>
+        http().delete('/board/invalid-uuid').set('Cookie', cookies),
+      );
+    });
   });
 });
