@@ -12,6 +12,7 @@ import { expectForbidden } from 'src/test/utils/expect/expectForbidden';
 import { expectBadRequest } from 'src/test/utils/expect/expectBadRequest';
 
 let cookies: string[];
+let badCookies: string[];
 describe('Board (e2e)', () => {
   let app: INestApplication;
   const http = () => request(app.getHttpServer());
@@ -20,8 +21,11 @@ describe('Board (e2e)', () => {
     app = await appFactory();
     await app.init();
 
-    const res = await loginRequest(app);
-    cookies = getCookies(res);
+    const res1 = await loginRequest(app);
+    cookies = getCookies(res1);
+
+    const res2 = await loginRequest(app);
+    badCookies = getCookies(res2);
   });
 
   afterAll(async () => {
@@ -98,6 +102,8 @@ describe('Board (e2e)', () => {
         async (id: string, badCookies: string[]) => {
           return await http().get(`/board/${id}`).set('Cookie', badCookies);
         },
+        cookies,
+        badCookies,
       );
     });
 
@@ -138,6 +144,8 @@ describe('Board (e2e)', () => {
             .send(dto)
             .set('Cookie', badCookies);
         },
+        cookies,
+        badCookies,
       );
     });
 
@@ -176,6 +184,8 @@ describe('Board (e2e)', () => {
         async (id: string, badCookies: string[]) => {
           return await http().delete(`/board/${id}`).set('Cookie', badCookies);
         },
+        cookies,
+        badCookies,
       );
     });
 

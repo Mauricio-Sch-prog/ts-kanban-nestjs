@@ -1,7 +1,5 @@
 import { INestApplication } from '@nestjs/common';
 import { Response } from 'supertest';
-import { loginRequest } from '../loginRequest';
-import { getCookies } from '../getCookies';
 import { ErrorResponse } from 'src/common/type/error.response';
 
 interface BaseEntityWithId {
@@ -22,18 +20,14 @@ export const expectForbidden = async (
   app: INestApplication,
   createRequest: createRequestFunc,
   forbiddenRequest: forbiddenRequestFunc,
+  cookies: string[],
+  badCookies: string[],
 ) => {
-  const user1 = await loginRequest(app);
-  const cookies1 = getCookies(user1);
-
-  const user2 = await loginRequest(app);
-  const cookies2 = getCookies(user2);
-
-  const product = await createRequest(app, cookies1);
+  const product = await createRequest(app, cookies);
 
   const id = product.id;
 
-  const res = await forbiddenRequest(id, cookies2);
+  const res = await forbiddenRequest(id, badCookies);
 
   const body = res.body as ErrorResponse;
 
