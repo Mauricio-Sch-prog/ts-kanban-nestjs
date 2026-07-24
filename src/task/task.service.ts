@@ -19,7 +19,7 @@ export class TaskService {
     private laneRepository: Repository<Lane>,
   ) {}
 
-  private async ValidateById(id: string) {
+  private async validateById(id: string) {
     const task = await this.taskRepo.findOne({ where: { id: id } });
     if (!task) {
       throw new NotFoundException(`Task with ID "${id}" not found`);
@@ -48,7 +48,7 @@ export class TaskService {
   }
 
   async findOne(id: string) {
-    return await this.ValidateById(id);
+    return await this.validateById(id);
   }
 
   findLaneTasks(id: string) {
@@ -68,14 +68,14 @@ export class TaskService {
       if (!lane) throw new ForbiddenException("Lane doesn't belong to user");
     }
 
-    const task = await this.ValidateById(id);
+    const task = await this.validateById(id);
     Object.assign(task, updateTaskDto);
 
     return this.taskRepo.save(task);
   }
 
   async remove(id: string) {
-    const task = await this.ValidateById(id);
+    const task = await this.validateById(id);
     await this.taskRepo.softRemove(task);
     return { message: 'Succesfully' };
   }

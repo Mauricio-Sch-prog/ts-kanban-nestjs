@@ -19,7 +19,7 @@ export class LaneService {
     private readonly laneRepo: LaneScopedRepository,
   ) {}
 
-  private async ValidateById(id: string) {
+  private async validateById(id: string) {
     const lane = await this.laneRepo.findOne({ where: { id: id } });
     if (!lane) {
       throw new NotFoundException(`Lane with ID "${id}" not found`);
@@ -47,7 +47,7 @@ export class LaneService {
   }
 
   async findOne(id: string) {
-    return await this.ValidateById(id);
+    return await this.validateById(id);
   }
 
   findBoardLanes(id: string) {
@@ -68,14 +68,14 @@ export class LaneService {
       if (!board) throw new ForbiddenException("Board doesn't belong to user");
     }
 
-    const lane = await this.ValidateById(id);
+    const lane = await this.validateById(id);
     Object.assign(lane, updateLaneDto);
 
     return this.laneRepo.save(lane);
   }
 
   async remove(id: string) {
-    const lane = await this.ValidateById(id);
+    const lane = await this.validateById(id);
 
     await this.laneRepo.softRemove(lane);
 

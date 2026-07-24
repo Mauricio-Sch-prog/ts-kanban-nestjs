@@ -22,7 +22,7 @@ export class UserService {
     return await bcrypt.hash(password, this.saltRounds);
   }
 
-  private async ValidateById(id: string) {
+  private async validateById(id: string) {
     const user = await this.userRepository.findOneBy({ id: id });
     if (!user) {
       throw new NotFoundException(`User with ID "${id}" not found`);
@@ -47,7 +47,7 @@ export class UserService {
   }
 
   async findOne(id: string) {
-    return await this.ValidateById(id);
+    return await this.validateById(id);
   }
 
   async findByEmail(email: string) {
@@ -65,13 +65,13 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.ValidateById(id);
+    const user = await this.validateById(id);
     Object.assign(user, updateUserDto);
     return await this.userRepository.save(user);
   }
 
   async remove(id: string) {
-    const user = await this.ValidateById(id);
+    const user = await this.validateById(id);
     await this.userRepository.softRemove(user);
   }
 }

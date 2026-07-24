@@ -19,7 +19,7 @@ export class TagsService {
     private taskRepository: Repository<Task>,
   ) {}
 
-  private async ValidateById(id: string) {
+  private async validateById(id: string) {
     const tag = await this.tagsRepo.findOne({ where: { id: id } });
     if (!tag) {
       throw new NotFoundException(`Tag with ID "${id}" not found`);
@@ -47,7 +47,7 @@ export class TagsService {
   }
 
   async findOne(id: string) {
-    return await this.ValidateById(id);
+    return await this.validateById(id);
   }
 
   findTaskTags(id: string) {
@@ -68,7 +68,7 @@ export class TagsService {
       if (!task) throw new ForbiddenException("Task doesn't belong to user");
     }
 
-    const tag = await this.ValidateById(id);
+    const tag = await this.validateById(id);
 
     Object.assign(tag, updateTagDto);
 
@@ -76,7 +76,7 @@ export class TagsService {
   }
 
   async remove(id: string) {
-    const tag = await this.ValidateById(id);
+    const tag = await this.validateById(id);
 
     await this.tagsRepo.softRemove(tag);
 
