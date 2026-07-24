@@ -1,4 +1,3 @@
-import { INestApplication } from '@nestjs/common';
 import { Response } from 'supertest';
 import { ErrorResponse } from 'src/common/type/error.response';
 
@@ -6,10 +5,7 @@ interface BaseEntityWithId {
   id: string;
 }
 
-type createRequestFunc = (
-  app: INestApplication,
-  cookies: string[],
-) => Promise<BaseEntityWithId>;
+type createRequestFunc = () => Promise<BaseEntityWithId>;
 
 type forbiddenRequestFunc = (
   id: string,
@@ -17,13 +13,11 @@ type forbiddenRequestFunc = (
 ) => Promise<Response>;
 
 export const expectForbidden = async (
-  app: INestApplication,
   createRequest: createRequestFunc,
   forbiddenRequest: forbiddenRequestFunc,
-  cookies: string[],
   badCookies: string[],
 ) => {
-  const product = await createRequest(app, cookies);
+  const product = await createRequest();
 
   const id = product.id;
 

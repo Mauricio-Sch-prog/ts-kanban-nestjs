@@ -97,12 +97,12 @@ describe('Board (e2e)', () => {
 
     it('should refuse not owned boards', async () => {
       await expectForbidden(
-        app,
-        createBoard,
+        async () => {
+          return await createBoard(app, cookies);
+        },
         async (id: string, badCookies: string[]) => {
           return await http().get(`/board/${id}`).set('Cookie', badCookies);
         },
-        cookies,
         badCookies,
       );
     });
@@ -136,15 +136,15 @@ describe('Board (e2e)', () => {
 
     it('should refuse not owned boards', async () => {
       await expectForbidden(
-        app,
-        createBoard,
+        async () => {
+          return await createBoard(app, cookies);
+        },
         async (id: string, badCookies: string[]) => {
           return await http()
             .patch(`/board/${id}`)
             .send(dto)
             .set('Cookie', badCookies);
         },
-        cookies,
         badCookies,
       );
     });
@@ -179,12 +179,12 @@ describe('Board (e2e)', () => {
 
     it('should refuse not owned boards', async () => {
       await expectForbidden(
-        app,
-        createBoard,
+        async () => {
+          return await createBoard(app, cookies);
+        },
         async (id: string, badCookies: string[]) => {
           return await http().delete(`/board/${id}`).set('Cookie', badCookies);
         },
-        cookies,
         badCookies,
       );
     });
