@@ -8,7 +8,7 @@ export class Task extends BaseEntity {
   @Column({ type: 'varchar', length: 150 })
   title!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   description!: string;
 
   @ManyToOne(() => Lane, { onDelete: 'CASCADE' })
