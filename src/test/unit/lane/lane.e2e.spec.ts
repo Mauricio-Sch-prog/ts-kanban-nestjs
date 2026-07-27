@@ -12,6 +12,7 @@ import { expectForbidden } from 'src/test/utils/expect/expectForbidden';
 import { expectBadRequest } from 'src/test/utils/expect/expectBadRequest';
 import { Lane } from 'src/lane/entities/lane.entity';
 import { createLane } from 'src/test/utils/createRequests/createLane';
+import { expectInvalidDto } from 'src/test/utils/expect/expectInvalidDto';
 
 let board: Board;
 let cookies: string[];
@@ -56,15 +57,7 @@ describe('Lane (e2e)', () => {
     });
 
     it('should refuse invalid dto', async () => {
-      const res = await http()
-        .post('/lane')
-        .set('Cookie', cookies)
-        .send()
-        .expect(400);
-
-      const body = res.body as ErrorResponse;
-
-      expect(body.success).toEqual(false);
+      await expectInvalidDto(app, '/lane', cookies);
     });
 
     it('should throw when no cookies', async () => {

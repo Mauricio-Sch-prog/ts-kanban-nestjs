@@ -10,6 +10,7 @@ import { createBoard } from 'src/test/utils/createRequests/createBoard';
 import { loginRequest } from 'src/test/utils/loginRequest';
 import { expectForbidden } from 'src/test/utils/expect/expectForbidden';
 import { expectBadRequest } from 'src/test/utils/expect/expectBadRequest';
+import { expectInvalidDto } from 'src/test/utils/expect/expectInvalidDto';
 
 let cookies: string[];
 let badCookies: string[];
@@ -50,15 +51,7 @@ describe('Board (e2e)', () => {
     });
 
     it('should refuse invalid dto', async () => {
-      const res = await http()
-        .post('/board')
-        .set('Cookie', cookies)
-        .send()
-        .expect(400);
-
-      const body = res.body as ErrorResponse;
-
-      expect(body.success).toEqual(false);
+      await expectInvalidDto(app, '/board', cookies);
     });
 
     it('should throw when no cookies', async () => {
