@@ -1,6 +1,5 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { ErrorResponse } from 'src/common/type/error.response';
 import { appFactory } from 'src/test/factories/app.factory';
 import { ApiResponse } from 'src/common/type/api.response';
 import { Board } from 'src/board/entities/board.entity';
