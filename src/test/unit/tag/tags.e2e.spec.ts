@@ -15,13 +15,15 @@ import { Task } from 'src/task/entities/task.entity';
 import { expectInvalidDto } from 'src/test/utils/expect/expectInvalidDto';
 import { createTask } from 'src/test/utils/createRequests/createTask';
 import { ErrorResponse } from 'src/common/type/error.response';
-import { title } from 'process';
+import { Tag } from 'src/tags/entities/tag.entity';
+import { createTag } from 'src/test/utils/createRequests/createTag';
 
 let board: Board;
 let lane: Lane;
+let task: Task;
 let cookies: string[];
 let badCookies: string[];
-describe('Task (e2e)', () => {
+describe('Tags (e2e)', () => {
   let app: INestApplication;
   const http = () => request(app.getHttpServer());
 
@@ -37,161 +39,160 @@ describe('Task (e2e)', () => {
 
     board = await createBoard(app, cookies);
     lane = await createLane(app, cookies, board.id);
+    task = await createTask(app, cookies, lane.id);
   });
 
   afterAll(async () => {
     await app.close();
   });
 
-  describe('POST /task', () => {
-    it('should send dto and succesfully create task', async () => {
+  describe('POST /tags', () => {
+    it('should send dto and succesfully create tag', async () => {
       const res = await http()
-        .post('/task')
+        .post('/tags')
         .set('Cookie', cookies)
         .send({
-          title: 'some task someone should do',
-          lane: lane.id,
+          name: 'this tag tells something about something',
+          task: task.id,
         })
         .expect(201);
 
-      const body = res.body as ApiResponse<Task>;
+      const body = res.body as ApiResponse<Tag>;
 
       expect(body.success).toBe(true);
       expect(body.data).toMatchObject({
-        title: 'some task someone should do',
-        lane: { id: lane.id },
+        name: 'this tag tells something about something',
+        task: { id: task.id },
       });
     });
+  });
 
-    it('should refuse invalid dto', async () => {
-      await expectInvalidDto(app, '/task', cookies);
-    });
+  it('should refuse invalid dto', async () => {
+    await expectInvalidDto(app, '/tags', cookies);
+  });
 
-    it('should throw when no cookies', async () => {
-      await expectUnauthorized(() =>
-        http().post('/task').send({
-          title: 'some task someone should do',
-          lane: lane.id,
-        }),
-      );
-    });
+  it('should throw when no cookies', async () => {
+    await expectUnauthorized(() =>
+      http().post('/tags').send({
+        name: 'some tag to be attached',
+        task: task.id,
+      }),
+    );
+  });
 
-    it('should refuse not owned lanes', async () => {
-      await expectForbidden(
-        async () => {
-          return createLane(app, cookies, board.id);
-        },
-        async (id: string, badCookies: string[]) => {
-          return await http()
-            .post(`/task`)
-            .send({
-              title: 'a name for a new task',
-              lane: id,
-            })
-            .set('Cookie', badCookies);
-        },
-        badCookies,
-      );
-    });
+  it('should refuse not owned tasks', async () => {
+    await expectForbidden(
+      async () => {
+        return createTask(app, cookies, lane.id);
+      },
+      async (id: string, badCookies: string[]) => {
+        return await http()
+          .post(`/tags`)
+          .send({
+            name: 'a very unallowed tag',
+            task: id,
+          })
+          .set('Cookie', badCookies);
+      },
+      badCookies,
+    );
   });
 
   describe('GET /task', () => {
     it('Should succeed', async () => {
-      const res = await http().get('/task').set('Cookie', cookies).expect(200);
-      const body = res.body as ApiResponse<Task[]>;
+      const res = await http().get('/tags').set('Cookie', cookies).expect(200);
+      const body = res.body as ApiResponse<Tag[]>;
       expect(body.success).toBe(true);
       expect(Array.isArray(body.data)).toBe(true);
     });
     it('should throw when no cookies', async () => {
-      await expectUnauthorized(() => http().get('/task'));
+      await expectUnauthorized(() => http().get('/tags'));
+    });
+  });
+  describe('GET /tags:id', () => {
+    it('Should receive a valid id', async () => {
+      const tag = await createTag(app, cookies, task.id);
+      const res = await http()
+        .get(`/tags/${tag.id}`)
+        .set('Cookie', cookies)
+        .expect(200);
+      const body = res.body as ApiResponse<Tag>;
+      expect(body.success).toBe(true);
+    });
+    it('should refuse not owned tags', async () => {
+      await expectForbidden(
+        async () => {
+          return await createTag(app, cookies, task.id);
+        },
+        async (id: string, badCookies: string[]) => {
+          return await http().get(`/tags/${id}`).set('Cookie', badCookies);
+        },
+        badCookies,
+      );
+    });
+    it('should throw when no cookies', async () => {
+      const tag = await createTag(app, cookies, task.id);
+      await expectUnauthorized(() => http().get(`/tags/${tag.id}`));
+    });
+    it('should throw when at invalid uuid', async () => {
+      await expectBadRequest(() =>
+        http().get('/tags/invalid-uuid').set('Cookie', cookies),
+      );
     });
   });
 
-  describe('GET /task:id', () => {
+  describe('GET /tags/task:id/tags', () => {
     it('Should receive a valid id', async () => {
-      const task = await createTask(app, cookies, lane.id);
+      await createTag(app, cookies, task.id);
       const res = await http()
-        .get(`/task/${task.id}`)
+        .get(`/tags/task/${task.id}/tags`)
         .set('Cookie', cookies)
         .expect(200);
-      const body = res.body as ApiResponse<Task>;
+      const body = res.body as ApiResponse<Tag[]>;
       expect(body.success).toBe(true);
+      expect(Array.isArray(body.data)).toBe(true);
     });
-
     it('should refuse not owned tasks', async () => {
       await expectForbidden(
         async () => {
           return await createTask(app, cookies, lane.id);
         },
         async (id: string, badCookies: string[]) => {
-          return await http().get(`/task/${id}`).set('Cookie', badCookies);
-        },
-        badCookies,
-      );
-    });
-    it('should throw when no cookies', async () => {
-      const task = await createTask(app, cookies, lane.id);
-      await expectUnauthorized(() => http().get(`/task/${task.id}`));
-    });
-    it('should throw when at invalid uuid', async () => {
-      await expectBadRequest(() =>
-        http().get('/task/invalid-uuid').set('Cookie', cookies),
-      );
-    });
-  });
-
-  describe('GET /task/lane:id/tasks', () => {
-    it('Should receive a valid id', async () => {
-      await createTask(app, cookies, lane.id);
-      const res = await http()
-        .get(`/task/lane/${lane.id}/tasks`)
-        .set('Cookie', cookies)
-        .expect(200);
-      const body = res.body as ApiResponse<Task[]>;
-      expect(body.success).toBe(true);
-      expect(Array.isArray(body.data)).toBe(true);
-    });
-    it('should refuse not owned lanes', async () => {
-      await expectForbidden(
-        async () => {
-          return await createLane(app, cookies, board.id);
-        },
-        async (id: string, badCookies: string[]) => {
           return await http()
-            .get(`/task/lane/${id}/tasks`)
+            .get(`/tags/task/${id}/tags`)
             .set('Cookie', badCookies);
         },
         badCookies,
       );
     });
     it('should throw when no cookies', async () => {
-      await expectUnauthorized(() => http().get(`/task/lane/${lane.id}/tasks`));
+      await expectUnauthorized(() => http().get(`/tags/task/${task.id}/tags`));
     });
     it('should throw when at invalid uuid', async () => {
       await expectBadRequest(() =>
-        http().get('/task/lane/invalid-uuid/tasks').set('Cookie', cookies),
+        http().get('/tags/task/invalid-uuid/tags').set('Cookie', cookies),
       );
     });
   });
 
-  describe('PATCH /task:id', () => {
-    const dto = { title: 'updated task title' };
+  describe('PATCH /tags:id', () => {
+    const dto = { name: 'changed tag' };
     it('Should receive a valid id and valid dto', async () => {
-      const task = await createTask(app, cookies, lane.id);
+      const tag = await createTag(app, cookies, task.id);
       const res = await http()
-        .patch(`/task/${task.id}`)
+        .patch(`/tags/${tag.id}`)
         .send(dto)
         .set('Cookie', cookies)
         .expect(200);
-      const body = res.body as ApiResponse<Task>;
+      const body = res.body as ApiResponse<Tag>;
       expect(body.success).toBe(true);
-      expect(body.data.title).toBe('updated task title');
+      expect(body.data.name).toBe(dto.name);
     });
     it('Should refuse invalid dto', async () => {
-      const task = await createTask(app, cookies, lane.id);
+      const tag = await createTag(app, cookies, task.id);
       const res = await http()
-        .patch(`/task/${task.id}`)
-        .send({ title: '' })
+        .patch(`/tags/${tag.id}`)
+        .send({ name: '' })
         .set('Cookie', cookies)
         .expect(400);
       const body = res.body as ErrorResponse;
@@ -201,11 +202,11 @@ describe('Task (e2e)', () => {
     it('should refuse not owned tasks', async () => {
       await expectForbidden(
         async () => {
-          return await createTask(app, cookies, lane.id);
+          return await createTag(app, cookies, task.id);
         },
         async (id: string, badCookies: string[]) => {
           return await http()
-            .patch(`/task/${id}`)
+            .patch(`/tags/${id}`)
             .send(dto)
             .set('Cookie', badCookies);
         },
@@ -213,23 +214,21 @@ describe('Task (e2e)', () => {
       );
     });
     it('should throw when no cookies', async () => {
-      const task = await createTask(app, cookies, lane.id);
-      await expectUnauthorized(() =>
-        http().patch(`/task/${task.id}`).send(dto),
-      );
+      const tag = await createTag(app, cookies, task.id);
+      await expectUnauthorized(() => http().patch(`/tags/${tag.id}`).send(dto));
     });
     it('should throw when at invalid uuid', async () => {
       await expectBadRequest(() =>
-        http().patch('/task/invalid-uuid').send(dto).set('Cookie', cookies),
+        http().patch('/tags/invalid-uuid').send(dto).set('Cookie', cookies),
       );
     });
   });
 
-  describe('DELETE /task:id', () => {
+  describe('DELETE /tags:id', () => {
     it('Should receive a valid id', async () => {
-      const task = await createTask(app, cookies, lane.id);
+      const tag = await createTag(app, cookies, task.id);
       const res = await http()
-        .delete(`/task/${task.id}`)
+        .delete(`/tags/${tag.id}`)
         .set('Cookie', cookies)
         .expect(200);
       const body = res.body as ApiResponse<{ message: string }>;
@@ -237,24 +236,24 @@ describe('Task (e2e)', () => {
         message: 'Succesfully',
       });
     });
-    it('should refuse not owned tasks', async () => {
+    it('should refuse not owned tags', async () => {
       await expectForbidden(
         async () => {
-          return await createTask(app, cookies, lane.id);
+          return await createTag(app, cookies, task.id);
         },
         async (id: string, badCookies: string[]) => {
-          return await http().delete(`/task/${id}`).set('Cookie', badCookies);
+          return await http().delete(`/tags/${id}`).set('Cookie', badCookies);
         },
         badCookies,
       );
     });
     it('should throw when no cookies', async () => {
-      const task = await createTask(app, cookies, lane.id);
-      await expectUnauthorized(() => http().delete(`/task/${task.id}`));
+      const tag = await createTag(app, cookies, task.id);
+      await expectUnauthorized(() => http().delete(`/tags/${tag.id}`));
     });
     it('should throw when at invalid uuid', async () => {
       await expectBadRequest(() =>
-        http().delete('/task/invalid-uuid').set('Cookie', cookies),
+        http().delete('/tags/invalid-uuid').set('Cookie', cookies),
       );
     });
   });
