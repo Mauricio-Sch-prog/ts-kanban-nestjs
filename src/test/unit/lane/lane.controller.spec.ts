@@ -7,7 +7,7 @@ import { CreateLaneDto } from 'src/lane/dto/create-lane.dto';
 import { createUserMock } from 'src/test/factories/user.factory';
 import { UpdateLaneDto } from 'src/lane/dto/update-lane.dto';
 
-const validId = 'uuid-123';
+const validId = '550e8400-e29b-41d4-a716-446655440000';
 
 describe('LaneController', () => {
   let controller: LaneController;
