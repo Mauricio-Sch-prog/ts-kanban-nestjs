@@ -15,7 +15,6 @@ import { Task } from 'src/task/entities/task.entity';
 import { expectInvalidDto } from 'src/test/utils/expect/expectInvalidDto';
 import { createTask } from 'src/test/utils/createRequests/createTask';
 import { ErrorResponse } from 'src/common/type/error.response';
-import { title } from 'process';
 
 let board: Board;
 let lane: Lane;

@@ -41,7 +41,7 @@ describe('TaskController', () => {
 
   describe('create', () => {
     const dto: CreateTaskDto = {
-      title: 'Lanes can have any name',
+      title: 'Tasks can have any name',
     };
     it('should create a task', async () => {
       const mockTask = createTaskMock();
