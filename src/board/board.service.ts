@@ -43,6 +43,6 @@ export class BoardService {
     const board = await this.validateById(id);
 
     await this.boardRepo.softRemove(board);
-    return { message: 'Succesfully' };
+    return { message: 'Successfully' };
   }
 }

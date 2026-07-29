@@ -25,7 +25,7 @@ export class AuthController {
       maxAge: 1000 * 60 * 60 * 2,
     });
 
-    return 'Logged succesfully';
+    return 'Logged successfully';
   }
 
   @Public()

@@ -36,7 +36,6 @@ export class TaskService {
 
     const task = await this.taskRepo.save({
       ...createTaskDto,
-      user: { id: userId },
       lane: { id: createTaskDto.lane },
     });
     return task;
@@ -77,6 +76,6 @@ export class TaskService {
   async remove(id: string) {
     const task = await this.validateById(id);
     await this.taskRepo.softRemove(task);
-    return { message: 'Succesfully' };
+    return { message: 'Successfully' };
   }
 }

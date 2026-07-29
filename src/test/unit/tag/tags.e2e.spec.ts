@@ -47,7 +47,7 @@ describe('Tags (e2e)', () => {
   });
 
   describe('POST /tags', () => {
-    it('should send dto and succesfully create tag', async () => {
+    it('should send dto and successfully create tag', async () => {
       const res = await http()
         .post('/tags')
         .set('Cookie', cookies)
@@ -233,7 +233,7 @@ describe('Tags (e2e)', () => {
         .expect(200);
       const body = res.body as ApiResponse<{ message: string }>;
       expect(body.data).toEqual({
-        message: 'Succesfully',
+        message: 'Successfully',
       });
     });
     it('should refuse not owned tags', async () => {

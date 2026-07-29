@@ -43,7 +43,7 @@ describe('Task (e2e)', () => {
   });
 
   describe('POST /task', () => {
-    it('should send dto and succesfully create task', async () => {
+    it('should send dto and successfully create task', async () => {
       const res = await http()
         .post('/task')
         .set('Cookie', cookies)
@@ -233,7 +233,7 @@ describe('Task (e2e)', () => {
         .expect(200);
       const body = res.body as ApiResponse<{ message: string }>;
       expect(body.data).toEqual({
-        message: 'Succesfully',
+        message: 'Successfully',
       });
     });
     it('should refuse not owned tasks', async () => {

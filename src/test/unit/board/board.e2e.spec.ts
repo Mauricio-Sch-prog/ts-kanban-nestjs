@@ -33,7 +33,7 @@ describe('Board (e2e)', () => {
   });
 
   describe('POST /board', () => {
-    it('should send dto and succesfully create board', async () => {
+    it('should send dto and successfully create board', async () => {
       const res = await http()
         .post('/board')
         .set('Cookie', cookies)
@@ -165,7 +165,7 @@ describe('Board (e2e)', () => {
         .expect(200);
       const body = res.body as ApiResponse<Board>;
       expect(body.data).toEqual({
-        message: 'Succesfully',
+        message: 'Successfully',
       });
     });
 

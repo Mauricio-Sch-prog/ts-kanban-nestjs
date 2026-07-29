@@ -79,6 +79,6 @@ export class LaneService {
 
     await this.laneRepo.softRemove(lane);
 
-    return { message: 'Succesfully' };
+    return { message: 'Successfully' };
   }
 }

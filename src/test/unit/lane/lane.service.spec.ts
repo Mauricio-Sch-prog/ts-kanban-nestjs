@@ -252,7 +252,7 @@ describe('LaneService', () => {
 
       expectFindOneCalledWithId(lane.id);
       expect(laneRepository.softRemove).toHaveBeenCalledWith(lane);
-      expect(result).toEqual({ message: 'Succesfully' });
+      expect(result).toEqual({ message: 'Successfully' });
     });
 
     it('should throw NotFoundException if lane does not exist', async () => {

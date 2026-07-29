@@ -38,7 +38,7 @@ describe('Lane (e2e)', () => {
   });
 
   describe('POST /lane', () => {
-    it('should send dto and succesfully create lane', async () => {
+    it('should send dto and successfully create lane', async () => {
       const res = await http()
         .post('/lane')
         .set('Cookie', cookies)
@@ -243,7 +243,7 @@ describe('Lane (e2e)', () => {
         .expect(200);
       const body = res.body as ApiResponse<{ message: string }>;
       expect(body.data).toEqual({
-        message: 'Succesfully',
+        message: 'Successfully',
       });
     });
     it('should refuse not owned lanes', async () => {

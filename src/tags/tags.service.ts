@@ -80,6 +80,6 @@ export class TagsService {
 
     await this.tagsRepo.softRemove(tag);
 
-    return { message: 'Succesfully' };
+    return { message: 'Successfully' };
   }
 }
