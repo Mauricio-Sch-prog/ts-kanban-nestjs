@@ -1,30 +1,41 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BoardService } from '../../../board/board.service';
-import { BoardScopedRepository } from 'src/board/board.scoped.repository';
-import { Board } from 'src/board/entities/board.entity';
 import { createMockRepo } from 'src/test/base.repo.mock';
-import { CreateBoardDto } from 'src/board/dto/create-board.dto';
-import { createBoardMock } from 'src/test/factories/board.factory';
-import { UpdateBoardDto } from 'src/board/dto/update-board.dto';
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Task } from 'src/task/entities/task.entity';
+import { TagsService } from 'src/tags/tags.service';
+import { TagsScopedRepository } from 'src/tags/tags.scoped.repository';
+import { Tag } from 'src/tags/entities/tag.entity';
+import { CreateTagDto } from 'src/tags/dto/create-tag.dto';
+import { createTagMock } from 'src/test/factories/tag.factory';
+import { createTaskMock } from 'src/test/factories/task.factory';
+import { UpdateTagDto } from 'src/tags/dto/update-tag.dto';
 
-describe('BoardService', () => {
-  let service: BoardService;
-  let repository: jest.Mocked<BoardScopedRepository>;
+describe('TagsService', () => {
+  let service: TagsService;
+  let tagsReposirory: jest.Mocked<TagsScopedRepository>;
+  let taskRepository: jest.Mocked<Repository<Task>>;
 
   beforeEach(async () => {
-    const mockBoardRepo = createMockRepo<Board>();
+    const mockTagsRepo = createMockRepo<Tag>();
+    const mockTaskRepo = createMockRepo<Task>();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        BoardService,
+        TagsService,
         {
-          provide: BoardScopedRepository,
-          useValue: mockBoardRepo,
+          provide: TagsScopedRepository,
+          useValue: mockTagsRepo,
+        },
+        {
+          provide: getRepositoryToken(Task),
+          useValue: mockTaskRepo,
         },
       ],
     }).compile();
-    service = module.get<BoardService>(BoardService);
-    repository = module.get(BoardScopedRepository);
+    service = module.get<TagsService>(TagsService);
+    tagsReposirory = module.get(TagsScopedRepository);
+    taskRepository = module.get(getRepositoryToken(Task));
   });
 
   afterEach(() => {
@@ -32,54 +43,88 @@ describe('BoardService', () => {
   });
 
   const expectFindOneCalledWithId = (id: string) => {
-    expect(repository.findOne).toHaveBeenCalledWith({
+    expect(tagsReposirory.findOne).toHaveBeenCalledWith({
       where: { id },
     });
   };
 
   describe('create', () => {
-    it('should create a board', async () => {
-      const dto: CreateBoardDto = {
-        name: 'Boards can have any name',
+    it('should create a tag', async () => {
+      const dto: CreateTagDto = {
+        name: 'tags can have any name',
+        task: 'task-id-123',
       };
-      const createdBoard = createBoardMock({ ...dto });
+      const userId = 'user-id-123';
+      const existingTask = createTaskMock({ id: dto.task });
+      const createdTag = createTagMock({
+        name: dto.name,
+        task: existingTask,
+      });
 
-      repository.save.mockResolvedValue(createdBoard);
+      taskRepository.findOne.mockResolvedValue(existingTask);
+      tagsReposirory.save.mockResolvedValue(createdTag);
+      const result = await service.create(dto, userId);
 
-      const result = await service.create(dto);
-      expect(repository.save).toHaveBeenCalledWith(dto);
-      expect(result).toEqual(createdBoard);
+      expect(taskRepository.findOne).toHaveBeenCalledWith({
+        where: { id: dto.task, user: { id: userId } },
+      });
+      expect(tagsReposirory.save).toHaveBeenCalledWith({
+        name: dto.name,
+        task: { id: dto.task },
+      });
+
+      expect(result).toEqual(createdTag);
+    });
+    it('should throw if forbidden task', async () => {
+      const dto: CreateTagDto = {
+        name: 'Tags can have any name',
+        task: 'invalid task-id-123',
+      };
+      const userId = 'user-id-123';
+
+      taskRepository.findOne.mockResolvedValue(null);
+      await expect(service.create(dto, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
+
+      expect(taskRepository.findOne).toHaveBeenCalledWith({
+        where: {
+          id: dto.task,
+          user: { id: userId },
+        },
+      });
+      expect(tagsReposirory.save).not.toHaveBeenCalled();
     });
   });
 
   describe('findAll', () => {
-    it("should find all user's boards", async () => {
-      const boards = [createBoardMock()];
+    it("should find all user's tags", async () => {
+      const tags = [createTagMock()];
 
-      repository.find.mockResolvedValue(boards);
+      tagsReposirory.find.mockResolvedValue(tags);
 
       const result = await service.findAll();
 
-      expect(repository.find).toHaveBeenCalledWith();
-      expect(result).toEqual(boards);
+      expect(tagsReposirory.find).toHaveBeenCalledWith();
+      expect(result).toEqual(tags);
     });
   });
 
   describe('findOne', () => {
-    it("should find a user's board by id", async () => {
-      const board = createBoardMock();
+    it("should find a user's tag by id", async () => {
+      const tag = createTagMock();
 
-      repository.findOne.mockResolvedValue(board);
+      tagsReposirory.findOne.mockResolvedValue(tag);
 
-      const result = await service.findOne(board.id);
+      const result = await service.findOne(tag.id);
 
-      expectFindOneCalledWithId(board.id);
-      expect(result).toEqual(board);
+      expectFindOneCalledWithId(tag.id);
+      expect(result).toEqual(tag);
     });
 
-    it('should throw NotFoundException if board does not exist', async () => {
+    it('should throw NotFoundException if taks does not exist', async () => {
       const invalidId = 'non-existent-id';
-      repository.findOne.mockResolvedValue(null);
+      tagsReposirory.findOne.mockResolvedValue(null);
 
       await expect(service.findOne('non-existent-id')).rejects.toThrow(
         NotFoundException,
@@ -89,60 +134,137 @@ describe('BoardService', () => {
     });
   });
 
+  describe('findTaskTags', () => {
+    it("It should return a task's tags", async () => {
+      const task = createTaskMock();
+      const tags = createTagMock({ task: task });
+
+      tagsReposirory.find.mockResolvedValue([tags]);
+      const result = await service.findTaskTags(task.id);
+
+      expect(tagsReposirory.find).toHaveBeenCalledWith({
+        where: { task: { id: task.id } },
+      });
+      expect(result).toEqual([tags]);
+    });
+  });
+
   describe('update', () => {
-    it("should find a user's board by id and update", async () => {
-      const dto: UpdateBoardDto = {
-        name: 'Boards can have any name',
-      };
-      const existingBoard = createBoardMock({ name: 'I was here all along' });
-      const updatedBoard = { ...existingBoard, ...dto };
+    const dto: UpdateTagDto = {
+      name: 'Super Name',
+      task: 'another task-id-123',
+    };
+    const userId = 'user-id-123';
+    it("should find a user's tag by id and update", async () => {
+      const existingTag = createTagMock({ name: 'I was tagging' });
+      const existingTask = createTaskMock({ id: dto.task });
+      const updatedTag = { ...existingTag, ...dto };
 
-      repository.findOne.mockResolvedValue(existingBoard);
-      repository.save.mockResolvedValue(updatedBoard);
+      taskRepository.findOne.mockResolvedValue(existingTask);
+      tagsReposirory.findOne.mockResolvedValue(existingTag);
+      tagsReposirory.save.mockResolvedValue(updatedTag);
 
-      const result = await service.update(existingBoard.id, dto);
+      const result = await service.update(existingTag.id, dto, userId);
 
-      expectFindOneCalledWithId(existingBoard.id);
-      expect(repository.save).toHaveBeenCalledWith(updatedBoard);
-      expect(result).toEqual(updatedBoard);
+      expect(taskRepository.findOne).toHaveBeenCalledWith({
+        where: {
+          id: dto.task,
+          user: { id: userId },
+        },
+      });
+      expectFindOneCalledWithId(existingTag.id);
+      expect(tagsReposirory.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: existingTag.id,
+          name: dto.name,
+          task: dto.task,
+        }),
+      );
+      expect(result).toEqual(updatedTag);
     });
 
-    it('should throw NotFoundException if board does not exist', async () => {
-      const invalidId = 'non-existent-id';
-      repository.findOne.mockResolvedValue(null);
+    it('should throw NotFoundException if task does not exist', async () => {
+      const existingTask = createTaskMock({ id: dto.task });
+      const invalidId = 'not an id';
 
-      await expect(service.update(invalidId, { name: 'test' })).rejects.toThrow(
+      taskRepository.findOne.mockResolvedValue(existingTask);
+      tagsReposirory.findOne.mockResolvedValue(null);
+
+      await expect(service.update(invalidId, dto, userId)).rejects.toThrow(
         NotFoundException,
       );
 
+      expect(taskRepository.findOne).toHaveBeenCalledWith({
+        where: { id: dto.task, user: { id: userId } },
+      });
       expectFindOneCalledWithId(invalidId);
-      expect(repository.save).not.toHaveBeenCalled();
+      expect(tagsReposirory.save).not.toHaveBeenCalled();
+    });
+
+    it('should throw ForbiddenException if task id is invalid', async () => {
+      taskRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.update('task-id', dto, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
+
+      expect(taskRepository.findOne).toHaveBeenCalledWith({
+        where: {
+          id: dto.task,
+          user: { id: userId },
+        },
+      });
+      expect(tagsReposirory.findOne).not.toHaveBeenCalled();
+      expect(tagsReposirory.save).not.toHaveBeenCalled();
+    });
+
+    it('should update without task validation if task is not provided', async () => {
+      const dto: UpdateTagDto = {
+        name: 'repeating nonsense',
+      };
+      const existingTag = createTagMock();
+      const updatedTag = { ...existingTag, ...dto };
+
+      tagsReposirory.findOne.mockResolvedValue(existingTag);
+      tagsReposirory.save.mockResolvedValue(updatedTag);
+
+      const result = await service.update(existingTag.id, dto, userId);
+
+      expect(taskRepository.findOne).not.toHaveBeenCalled();
+      expectFindOneCalledWithId(existingTag.id);
+      expect(tagsReposirory.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: existingTag.id,
+          name: dto.name,
+        }),
+      );
+      expect(result).toEqual(updatedTag);
     });
   });
 
   describe('remove', () => {
-    it('Should remove a board', async () => {
-      const board = createBoardMock();
+    it('Should remove a tag', async () => {
+      const tag = createTagMock();
 
-      repository.findOne.mockResolvedValue(board);
-      repository.softRemove.mockResolvedValue(true);
-      const result = await service.remove(board.id);
+      tagsReposirory.findOne.mockResolvedValue(tag);
+      tagsReposirory.softRemove.mockResolvedValue(true);
+      const result = await service.remove(tag.id);
 
-      expectFindOneCalledWithId(board.id);
-      expect(repository.softRemove).toHaveBeenCalledWith(board);
+      expectFindOneCalledWithId(tag.id);
+      expect(tagsReposirory.softRemove).toHaveBeenCalledWith(tag);
       expect(result).toEqual({ message: 'Successfully' });
     });
 
-    it('should throw NotFoundException if board does not exist', async () => {
+    it('should throw NotFoundException if tag does not exist', async () => {
       const invalidId = 'non-existent-id';
-      repository.findOne.mockResolvedValue(null);
+      tagsReposirory.findOne.mockResolvedValue(null);
 
       await expect(service.remove(invalidId)).rejects.toThrow(
         NotFoundException,
       );
 
       expectFindOneCalledWithId(invalidId);
-      expect(repository.softRemove).not.toHaveBeenCalled();
+      expect(tagsReposirory.softRemove).not.toHaveBeenCalled();
     });
   });
 });
