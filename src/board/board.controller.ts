@@ -8,6 +8,7 @@ import {
   Delete,
   ParseUUIDPipe,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { BoardService } from './board.service';
 import { CreateBoardDto } from './dto/create-board.dto';
@@ -15,6 +16,7 @@ import { UpdateBoardDto } from './dto/update-board.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { CheckOwnership } from 'src/common/decorator/ownershipOptions.decorator';
 import { Board } from './entities/board.entity';
+import { BoardPaginationDto } from './dto/board-paginating.dto';
 
 @Controller('board')
 @UseGuards(AuthGuard)
@@ -27,8 +29,8 @@ export class BoardController {
   }
 
   @Get()
-  findAll() {
-    return this.boardService.findAll();
+  findAll(@Query() boardPaginationDto: BoardPaginationDto) {
+    return this.boardService.findAll(boardPaginationDto);
   }
 
   @Get(':id')

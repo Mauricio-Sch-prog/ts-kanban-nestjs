@@ -115,7 +115,7 @@ describe('Auth (e2e)', () => {
       const res = await http().get('/board').set('Cookie', cookies).expect(200);
       const body = res.body as ApiResponse;
 
-      expect(body.data).toEqual([]);
+      expect(body.data).toEqual(expect.objectContaining({ data: [] }));
     });
 
     it('should have invalid cookies', async () => {

@@ -55,13 +55,21 @@ describe('BoardService', () => {
   describe('findAll', () => {
     it("should find all user's boards", async () => {
       const boards = [createBoardMock()];
+      const mockPagination = {
+        page: 1,
+        limit: 10,
+      };
 
-      repository.find.mockResolvedValue(boards);
+      repository.findAndCount.mockResolvedValue([boards, boards.length]);
 
-      const result = await service.findAll();
+      const result = await service.findAll(mockPagination);
 
-      expect(repository.find).toHaveBeenCalledWith();
-      expect(result).toEqual(boards);
+      expect(repository.findAndCount).toHaveBeenCalledWith({
+        skip: 0,
+        take: 10,
+        order: { createdAt: 'DESC' },
+      });
+      expect(result).toEqual(expect.objectContaining({ data: boards }));
     });
   });
 

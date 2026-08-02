@@ -42,6 +42,34 @@ export abstract class BaseScopedRepository<T extends Owned> {
     });
   }
 
+  findAndCount(options?: typeorm.FindManyOptions<T>) {
+    const baseWhere = {
+      user: { id: this.userId },
+    } as typeorm.FindOptionsWhere<T>;
+
+    let where: typeorm.FindOptionsWhere<T> | typeorm.FindOptionsWhere<T>[] =
+      baseWhere;
+
+    if (options?.where) {
+      if (Array.isArray(options.where)) {
+        where = options.where.map((w) => ({
+          ...w,
+          user: { id: this.userId },
+        }));
+      } else {
+        where = {
+          ...options.where,
+          user: { id: this.userId },
+        };
+      }
+    }
+
+    return this.repo.findAndCount({
+      ...options,
+      where,
+    });
+  }
+
   findOne(options: typeorm.FindOneOptions<T>) {
     const baseWhere = {
       user: { id: this.userId },

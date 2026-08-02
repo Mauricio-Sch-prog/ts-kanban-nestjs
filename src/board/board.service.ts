@@ -3,6 +3,7 @@ import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { Board } from './entities/board.entity';
 import { BoardScopedRepository } from './board.scoped.repository';
+import { BoardPaginationDto } from './dto/board-paginating.dto';
 
 @Injectable()
 export class BoardService {
@@ -23,9 +24,23 @@ export class BoardService {
     return newBoard;
   }
 
-  findAll() {
-    const boards = this.boardRepo.find();
-    return boards;
+  async findAll(paginationDto: BoardPaginationDto) {
+    const { page, limit } = paginationDto;
+
+    const [data, total] = await this.boardRepo.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: string) {
