@@ -7,6 +7,12 @@ export class Board extends BaseEntity {
   @Column({ type: 'varchar', length: 150 })
   name!: string;
 
+  @Column({ type: Number, default: 100 })
+  positionX!: number;
+
+  @Column({ type: Number, default: 100 })
+  positionY!: number;
+
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user!: User;

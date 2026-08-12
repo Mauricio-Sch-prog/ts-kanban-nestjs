@@ -11,6 +11,9 @@ export class Task extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   description!: string;
 
+  @Column({ type: Number, default: 1 })
+  index!: number;
+
   @ManyToOne(() => Lane, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'laneId' })
   lane!: Lane;
