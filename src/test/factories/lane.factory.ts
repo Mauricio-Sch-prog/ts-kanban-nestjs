@@ -7,6 +7,7 @@ import { createBoardMock } from './board.factory';
 export const createLaneMock = (overrides: Partial<Lane> = {}): Lane => ({
   ...createBaseMock(),
   name: faker.finance.accountName(),
+  index: 1,
   user: overrides.user ?? createUserMock(),
   board: overrides.board ?? createBoardMock(),
   ...overrides,

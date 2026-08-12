@@ -8,6 +8,7 @@ export const createTaskMock = (overrides: Partial<Task> = {}): Task => ({
   ...createBaseMock(),
   title: faker.finance.accountName(),
   description: faker.company.catchPhraseDescriptor(),
+  index: 1,
   user: overrides.user ?? createUserMock(),
   lane: overrides.lane ?? createLaneMock(),
   ...overrides,
