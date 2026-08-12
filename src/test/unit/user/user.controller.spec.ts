@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserController } from '../../../user/user.controller';
 import { UserService } from '../../../user/user.service';
-import { CreateUserDto } from '../../../user/dto/create-user.dto';
 import { UpdateUserDto } from '../../../user/dto/update-user.dto';
 import { createUserMock } from 'src/test/factories/user.factory';
 
@@ -40,29 +39,6 @@ describe('UserController', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('create', () => {
-    const dto: CreateUserDto = {
-      email: 'test@test.com',
-      password: '123456',
-    };
-    it('should create a user', async () => {
-      const mockUser = createUserMock();
-
-      mockUserService.create.mockResolvedValue(mockUser);
-
-      const result = await controller.create(dto);
-
-      expect(mockUserService.create).toHaveBeenCalledWith(dto);
-      expect(result).toEqual(mockUser);
-    });
-    it('should propagate error from service', async () => {
-      mockUserService.create.mockRejectedValue(new Error('fail'));
-
-      await expect(controller.create(dto)).rejects.toThrow('fail');
-      expect(mockUserService.create).toHaveBeenCalledWith(dto);
-    });
   });
 
   describe('findAll', () => {

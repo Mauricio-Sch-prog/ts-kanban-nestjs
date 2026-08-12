@@ -1,14 +1,9 @@
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -16,11 +11,6 @@ export class UserService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
-  private readonly saltRounds = 12;
-
-  private async hashPassword(password: string): Promise<string> {
-    return await bcrypt.hash(password, this.saltRounds);
-  }
 
   private async validateById(id: string) {
     const user = await this.userRepository.findOneBy({ id: id });
@@ -31,13 +21,7 @@ export class UserService {
   }
 
   async create(createUserDto: CreateUserDto) {
-    const hashedPassword = await this.hashPassword(createUserDto.password);
-    const existingUser = await this.findByEmail(createUserDto.email);
-    if (existingUser) throw new UnauthorizedException('email already in use');
-    const user = this.userRepository.create({
-      ...createUserDto,
-      password: hashedPassword,
-    });
+    const user = this.userRepository.create(createUserDto);
     return await this.userRepository.save(user);
   }
 

@@ -41,6 +41,7 @@ describe('Auth (e2e)', () => {
       expect(accessCookie).toContain('HttpOnly');
       expect(accessCookie).toContain('SameSite=Lax');
     });
+
     it('should refuse invalid email', async () => {
       const res = await loginRequest(
         app,
@@ -93,6 +94,8 @@ describe('Auth (e2e)', () => {
       expect(res.headers['set-cookie']).not.toBeDefined();
     });
   });
+
+
 
   describe('should check and return logged user data', () => {
     it('should have a logged user', async () => {

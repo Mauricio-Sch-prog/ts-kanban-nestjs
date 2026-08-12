@@ -6,6 +6,7 @@ import { LoginDto } from './dto/login.dto';
 import { User } from 'src/user/entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
 import TokenPayload from './interfaces/token.interface';
+import { SignupDto } from './dto/signup.dto';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +14,23 @@ export class AuthService {
     private userService: UserService,
     private readonly jwtService: JwtService,
   ) {}
+
+  private readonly saltRounds = 12;
+
+  private async hashPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, this.saltRounds);
+  }
+
+  async signup(signupDto: SignupDto) {
+    const existingUser = await this.userService.findByEmail(signupDto.email);
+    const hashedPassword = await this.hashPassword(signupDto.password);
+    if (existingUser) throw new UnauthorizedException('email already in use');
+
+    return await this.userService.create({
+      ...signupDto,
+      password: hashedPassword,
+    });
+  }
 
   async login(loginDto: LoginDto): Promise<string> {
     const user = await this.userService.findByEmail(loginDto.email);

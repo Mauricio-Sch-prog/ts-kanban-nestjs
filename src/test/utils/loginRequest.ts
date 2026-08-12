@@ -13,7 +13,7 @@ export const loginRequest = async (
   const http = () => request(app.getHttpServer());
   if (mode === 'createOnly') {
     return await http()
-      .post('/user')
+      .post('/auth/signup')
       .send({
         email: overrides.email ?? email,
         password: overrides.password ?? password,
@@ -22,7 +22,7 @@ export const loginRequest = async (
 
   if (mode === 'logOnly') {
     return await http()
-      .post('/auth')
+      .post('/auth/login')
       .send({
         email: overrides.email ?? email,
         password: overrides.password ?? password,
@@ -30,14 +30,14 @@ export const loginRequest = async (
   }
 
   await http()
-    .post('/user')
+    .post('/auth/signup')
     .send({
       email: overrides.email ?? email,
       password: overrides.password ?? password,
     });
 
   return await http()
-    .post('/auth')
+    .post('/auth/login')
     .send({
       email: overrides.email ?? email,
       password: overrides.password ?? password,

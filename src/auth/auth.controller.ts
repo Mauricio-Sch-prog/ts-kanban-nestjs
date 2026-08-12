@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { SignupDto } from './dto/signup.dto';
 import type { Response } from 'express';
 import { Public } from 'src/common/decorator/public.decorator';
 import { CurrentUser } from 'src/common/decorator/currentUser.decorator';
@@ -11,7 +12,14 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
-  @Post()
+  @Post('signup')
+  async signup(@Body() signupDto: SignupDto) {
+    await this.authService.signup(signupDto);
+    return 'Signed up successfully';
+  }
+
+  @Public()
+  @Post('login')
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -22,7 +30,7 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'lax',
-      maxAge: 1000 * 60 * 60 * 2,
+      maxAge: 1000 * 60 * 60 * 4,
     });
 
     return 'Logged successfully';

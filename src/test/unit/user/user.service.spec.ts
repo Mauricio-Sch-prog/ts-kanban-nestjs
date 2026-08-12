@@ -45,25 +45,21 @@ describe('UserService', () => {
   });
 
   describe('create', () => {
-    it('should hash password and save user', async () => {
+    it('should save user', async () => {
       const dto = {
         email: 'test@test.com',
-        password: '123456',
+        password: 'hashed-password',
       };
 
-      const hashedPassword = 'hashed-password';
-      const createdUser = createUserMock({ ...dto, password: hashedPassword });
+      const createdUser = createUserMock({ ...dto });
 
-      (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
       repository.create.mockReturnValue(createdUser);
       repository.save.mockResolvedValue(createdUser);
 
       const result = await service.create(dto);
 
-      expect(bcrypt.hash).toHaveBeenCalledWith(dto.password, 12);
       expect(repository.create).toHaveBeenCalledWith({
         ...dto,
-        password: hashedPassword,
       });
       expect(repository.save).toHaveBeenCalledWith(createdUser);
       expect(result).toEqual(createdUser);
