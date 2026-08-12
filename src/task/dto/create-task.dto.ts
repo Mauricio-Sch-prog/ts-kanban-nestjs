@@ -1,5 +1,6 @@
 import {
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
@@ -13,10 +14,13 @@ export class CreateTaskDto {
   title?: string;
 
   @IsOptional()
-  // @IsNotEmpty()
   @IsString()
   @MaxLength(600)
   description?: string;
+
+  @IsOptional()
+  @IsNumber()
+  index?: number;
 
   @IsUUID()
   lane?: string;

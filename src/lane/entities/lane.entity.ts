@@ -8,6 +8,9 @@ export class Lane extends BaseEntity {
   @Column({ type: 'varchar', length: 150 })
   name!: string;
 
+  @Column({ type: Number, default: 1 })
+  index!: number;
+
   @ManyToOne(() => Board, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'boardId' })
   board!: Board;
