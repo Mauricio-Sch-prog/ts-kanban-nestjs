@@ -18,4 +18,12 @@ export class CreateBoardDto {
   @IsOptional()
   @IsNumber()
   positionY!: number;
+
+  @IsOptional()
+  @IsNumber()
+  height!: number;
+
+  @IsOptional()
+  @IsNumber()
+  width!: number;
 }

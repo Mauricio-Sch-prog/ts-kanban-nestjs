@@ -44,7 +44,7 @@ const env = process.env.NODE_ENV;
       : []),
 
     ThrottlerModule.forRoot({
-      throttlers: env === 'test' ? [] : [{ ttl: 60000, limit: 10 }],
+      throttlers: env === 'test' ? [] : [{ ttl: 60000, limit: 50 }],
     }),
 
     AuthModule,
