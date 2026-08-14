@@ -95,8 +95,10 @@ export abstract class BaseScopedRepository<T extends Owned> {
     });
   }
 
-  async softRemove(criteria: Partial<T>): Promise<boolean> {
-    const result = await this.repo.softDelete(this.scopedWhere(criteria));
+  async softRemove(id: string): Promise<boolean> {
+    const result = await this.repo.softDelete(
+      this.scopedWhere({ id } as Partial<T>),
+    );
 
     return (result.affected ?? 0) > 0;
   }

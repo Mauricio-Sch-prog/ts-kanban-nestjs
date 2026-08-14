@@ -78,7 +78,7 @@ export class TagsService {
   async remove(id: string) {
     const tag = await this.validateById(id);
 
-    await this.tagsRepo.softRemove(tag);
+    await this.tagsRepo.softRemove(tag.id);
 
     return { message: 'Successfully' };
   }

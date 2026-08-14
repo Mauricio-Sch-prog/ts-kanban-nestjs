@@ -57,7 +57,7 @@ export class BoardService {
   async remove(id: string) {
     const board = await this.validateById(id);
 
-    await this.boardRepo.softRemove(board);
+    await this.boardRepo.softRemove(board.id);
     return { message: 'Successfully' };
   }
 }

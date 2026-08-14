@@ -75,7 +75,7 @@ export class TaskService {
 
   async remove(id: string) {
     const task = await this.validateById(id);
-    await this.taskRepo.softRemove(task);
+    await this.taskRepo.softRemove(task.id);
     return { message: 'Successfully' };
   }
 }
