@@ -45,6 +45,18 @@ export class BoardController {
     return this.boardService.findOne(id);
   }
 
+  @Get(':id/details')
+  @CheckOwnership({
+    entity: Board,
+    where: (userId, boardID) => ({
+      id: boardID,
+      user: { id: userId },
+    }),
+  })
+  findDetails(@Param('id', ParseUUIDPipe) id: string) {
+    return this.boardService.findDetails(id);
+  }
+
   @Patch(':id')
   @CheckOwnership({
     entity: Board,

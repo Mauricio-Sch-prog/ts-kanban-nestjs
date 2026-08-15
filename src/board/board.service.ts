@@ -47,6 +47,25 @@ export class BoardService {
     return await this.validateById(id);
   }
 
+  async findDetails(id: string) {
+    return await this.boardRepo.findOne({
+      where: { id },
+      relations: {
+        lanes: {
+          tasks: true,
+        },
+      },
+      order: {
+        lanes: {
+          index: 'ASC',
+          tasks: {
+            index: 'ASC',
+          },
+        },
+      },
+    });
+  }
+
   async update(id: string, updateBoardDto: UpdateBoardDto): Promise<Board> {
     const board = await this.validateById(id);
     Object.assign(board, updateBoardDto);
