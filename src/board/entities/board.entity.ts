@@ -1,6 +1,7 @@
 import { BaseEntity } from 'src/common/entities/base.entity';
+import { Lane } from 'src/lane/entities/lane.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 
 @Entity('boards')
 export class Board extends BaseEntity {
@@ -19,7 +20,10 @@ export class Board extends BaseEntity {
   @Column({ type: 'double precision', default: 300 })
   width!: number;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne('User', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user!: User;
+
+  @OneToMany('Lane', (lane: Lane) => lane.board)
+  lanes!: Lane[];
 }

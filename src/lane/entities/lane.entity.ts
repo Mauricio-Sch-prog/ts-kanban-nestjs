@@ -1,21 +1,25 @@
 import { BaseEntity } from 'src/common/entities/base.entity';
 import { Board } from '../../board/entities/board.entity';
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
+import { Task } from 'src/task/entities/task.entity';
 
 @Entity('lanes')
 export class Lane extends BaseEntity {
   @Column({ type: 'varchar', length: 150 })
   name!: string;
 
-  @Column({ type: Number, default: 1 })
+  @Column({ type: 'integer', default: 1 })
   index!: number;
 
-  @ManyToOne(() => Board, { onDelete: 'CASCADE' })
+  @ManyToOne('Board', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'boardId' })
   board!: Board;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne('User', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user!: User;
+
+  @OneToMany('Task', (task: Task) => task.lane)
+  tasks!: Task[];
 }

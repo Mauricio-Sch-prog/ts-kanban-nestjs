@@ -11,14 +11,14 @@ export class Task extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   description!: string;
 
-  @Column({ type: Number, default: 1 })
+  @Column({ type: 'integer', default: 1 })
   index!: number;
 
-  @ManyToOne(() => Lane, { onDelete: 'CASCADE' })
+  @ManyToOne('Lane', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'laneId' })
   lane!: Lane;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne('User', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user!: User;
 }
