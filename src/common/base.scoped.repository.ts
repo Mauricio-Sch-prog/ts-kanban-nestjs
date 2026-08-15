@@ -4,6 +4,7 @@ import * as typeorm from 'typeorm';
 import type { AuthenticatedRequest } from './interface/authenticatedRequest.interface';
 
 type Owned = {
+  id: string;
   user: { id: string };
 };
 export abstract class BaseScopedRepository<T extends Owned> {
