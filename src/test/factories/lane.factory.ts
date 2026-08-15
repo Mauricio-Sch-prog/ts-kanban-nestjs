@@ -10,5 +10,6 @@ export const createLaneMock = (overrides: Partial<Lane> = {}): Lane => ({
   index: 1,
   user: overrides.user ?? createUserMock(),
   board: overrides.board ?? createBoardMock(),
+  tasks: [],
   ...overrides,
 });

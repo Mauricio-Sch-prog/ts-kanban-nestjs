@@ -11,5 +11,6 @@ export const createBoardMock = (overrides: Partial<Board> = {}): Board => ({
   height: 400,
   width: 300,
   user: overrides.user ?? createUserMock(),
+  lanes: [],
   ...overrides,
 });
