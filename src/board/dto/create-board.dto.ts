@@ -21,6 +21,10 @@ export class CreateBoardDto {
 
   @IsOptional()
   @IsNumber()
+  positionZ!: number;
+
+  @IsOptional()
+  @IsNumber()
   height!: number;
 
   @IsOptional()

@@ -8,6 +8,7 @@ export const createBoardMock = (overrides: Partial<Board> = {}): Board => ({
   name: faker.word.noun(),
   positionX: 100,
   positionY: 100,
+  positionZ: 1,
   height: 400,
   width: 300,
   user: overrides.user ?? createUserMock(),

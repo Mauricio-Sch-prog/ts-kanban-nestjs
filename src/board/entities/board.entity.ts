@@ -14,6 +14,9 @@ export class Board extends BaseEntity {
   @Column({ type: 'double precision', default: 100 })
   positionY!: number;
 
+  @Column({ type: 'double precision', default: 1 })
+  positionZ!: number;
+
   @Column({ type: 'double precision', default: 400 })
   height!: number;
 
