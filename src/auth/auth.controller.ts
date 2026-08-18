@@ -6,6 +6,7 @@ import type { Response } from 'express';
 import { Public } from 'src/common/decorator/public.decorator';
 import { CurrentUser } from 'src/common/decorator/currentUser.decorator';
 import type { AuthenticatedUser } from 'src/common/type/authenticatedUser.interface';
+import { GoogleCredentialsDto } from './dto/googleCredentials.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -25,6 +26,26 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const jwtToken = await this.authService.login(loginDto);
+
+    res.cookie('access_token', jwtToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 4,
+    });
+
+    return 'Logged successfully';
+  }
+
+  @Public()
+  @Post('google')
+  async google(
+    @Body() googleCredentials: GoogleCredentialsDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const jwtToken = await this.authService.google(
+      googleCredentials.credential,
+    );
 
     res.cookie('access_token', jwtToken, {
       httpOnly: true,

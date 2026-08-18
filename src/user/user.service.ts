@@ -48,6 +48,21 @@ export class UserService {
     return user;
   }
 
+  async findByGoogleId(googleId: string) {
+    const user = await this.userRepository.findOne({
+      where: { googleId },
+      withDeleted: true,
+      select: {
+        id: true,
+        email: true,
+        avatarUrl: true,
+        name: true,
+        googleId: true,
+      },
+    });
+    return user;
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.validateById(id);
     Object.assign(user, updateUserDto);

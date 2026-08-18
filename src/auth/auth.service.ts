@@ -7,9 +7,13 @@ import { User } from 'src/user/entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
 import TokenPayload from './interfaces/token.interface';
 import { SignupDto } from './dto/signup.dto';
+import { OAuth2Client } from 'google-auth-library';
 
 @Injectable()
 export class AuthService {
+  private readonly googleClient = new OAuth2Client(
+    process.env.PUBLIC_GOOGLE_CLIENT_ID,
+  );
   constructor(
     private userService: UserService,
     private readonly jwtService: JwtService,
@@ -34,13 +38,50 @@ export class AuthService {
 
   async login(loginDto: LoginDto): Promise<string> {
     const user = await this.userService.findByEmail(loginDto.email);
-    if (!user) {
+    if (!user || !user.password) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
     const isMatch = await bcrypt.compare(loginDto.password, user.password);
     if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    return this.generateJtwToken(user);
+  }
+
+  async google(credential: string): Promise<string> {
+    const ticket = await this.googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    if (!payload?.sub || !payload.email) {
+      throw new UnauthorizedException('Invalid Google account');
+    }
+
+    const googleId = payload.sub;
+
+    let user = await this.userService.findByGoogleId(googleId);
+
+    if (!user) {
+      user = await this.userService.findByEmail(payload.email);
+    }
+
+    if (!user) {
+      user = await this.userService.create({
+        email: payload.email,
+        name: payload.name ?? 'Google User',
+        googleId,
+        avatarUrl: payload.picture || undefined,
+      });
+    } else if (!user.googleId) {
+      user = await this.userService.update(user.id, {
+        googleId,
+        avatarUrl: payload.picture || undefined,
+      });
     }
 
     return this.generateJtwToken(user);

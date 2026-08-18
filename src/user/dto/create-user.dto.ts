@@ -12,15 +12,24 @@ export class CreateUserDto {
   @IsNotEmpty()
   email!: string;
 
+  @IsOptional()
   @IsNotEmpty()
   @MinLength(12)
   @MaxLength(100)
   @IsString()
-  password!: string;
+  password?: string;
 
   @IsOptional()
   @MinLength(4)
   @MaxLength(100)
   @IsString()
   name?: string;
+
+  @IsOptional()
+  @IsString()
+  googleId?: string;
+
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string | undefined;
 }

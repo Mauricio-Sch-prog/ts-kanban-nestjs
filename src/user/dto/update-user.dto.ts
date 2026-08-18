@@ -6,4 +6,12 @@ export class UpdateUserDto {
   @MaxLength(100)
   @IsString()
   name?: string;
+
+  @IsOptional()
+  @IsString()
+  googleId?: string;
+
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string | undefined;
 }

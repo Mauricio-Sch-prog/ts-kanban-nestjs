@@ -9,6 +9,12 @@ export class User extends BaseEntity {
   @Column({ unique: true })
   email!: string;
 
-  @Column({ select: false })
-  password!: string;
+  @Column({ type: 'varchar', length: 255, nullable: true, select: false })
+  password!: string | null;
+
+  @Column({ nullable: true, unique: true })
+  googleId?: string;
+
+  @Column({ nullable: true })
+  avatarUrl?: string;
 }
