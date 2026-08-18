@@ -18,10 +18,26 @@ import { OwnershipGuard } from './common/guard/owrnership.guard';
 import { AuthGuard } from './auth/guards/auth.guard';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 const env = process.env.NODE_ENV;
 @Module({
   imports: [
+    MailerModule.forRoot({
+      transport: {
+        host: 'sandbox.smtp.mailtrap.io',
+        port: 587,
+        secure: false,
+        auth: {
+          user: '53872b9bb1a000',
+          pass: 'b01af69f4b6766',
+        },
+      },
+      defaults: {
+        from: '"No Reply" <noreply@example.com>',
+      },
+    }),
+
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: env === 'test' ? '.env.test' : '.env',
