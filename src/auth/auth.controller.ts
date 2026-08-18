@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
@@ -7,6 +7,8 @@ import { Public } from 'src/common/decorator/public.decorator';
 import { CurrentUser } from 'src/common/decorator/currentUser.decorator';
 import type { AuthenticatedUser } from 'src/common/type/authenticatedUser.interface';
 import { GoogleCredentialsDto } from './dto/googleCredentials.dto';
+import { ForgotPasswordDto } from './dto/forgotPassword.dto';
+import { VerifyEmailDto } from './dto/verifyEmail.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -68,6 +70,20 @@ export class AuthController {
     });
 
     return 'Logged out';
+  }
+
+  @Public()
+  @Post('forgot-password')
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    await this.authService.forgotPassword(forgotPasswordDto.email);
+    return `Restore password sent to ${forgotPasswordDto.email}`;
+  }
+
+  @Public()
+  @Get('verify-email')
+  async verifyEmail(@Query() verifyEmailDto: VerifyEmailDto) {
+    await this.authService.verifyEmail(verifyEmailDto);
+    return;
   }
 
   @Public()

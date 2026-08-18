@@ -17,4 +17,19 @@ export class User extends BaseEntity {
 
   @Column({ nullable: true })
   avatarUrl?: string;
+
+  @Column({ type: 'boolean', default: false })
+  isVerified?: boolean;
+
+  @Column({ nullable: true })
+  verificationToken?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  verificationTokenExpiry?: Date | null;
+
+  @Column({ nullable: true })
+  resetPasswordToken?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  resetPasswordTokenExpiry?: Date | null;
 }

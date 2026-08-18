@@ -5,6 +5,7 @@ import {
   IsEmail,
   MaxLength,
   IsOptional,
+  IsDate,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -32,4 +33,12 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   avatarUrl?: string | undefined;
+
+  @IsOptional()
+  @IsString()
+  verificationToken?: string | undefined;
+
+  @IsOptional()
+  @IsDate()
+  verificationTokenExpiry?: Date | undefined;
 }

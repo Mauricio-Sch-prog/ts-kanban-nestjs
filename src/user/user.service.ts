@@ -43,6 +43,11 @@ export class UserService {
         name: true,
         email: true,
         password: true,
+        isVerified: true,
+        verificationToken: true,
+        verificationTokenExpiry: true,
+        resetPasswordToken: true,
+        resetPasswordTokenExpiry: true,
       },
     });
     return user;
