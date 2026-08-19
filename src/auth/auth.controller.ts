@@ -36,6 +36,8 @@ export class AuthController {
   }
 
   @Public()
+  @UseGuards(RecaptchaGuard)
+  @RecaptchaAction('login')
   @Post('login')
   async login(
     @Body() loginDto: LoginDto,
@@ -112,6 +114,8 @@ export class AuthController {
   }
 
   @Public()
+  @UseGuards(RecaptchaGuard)
+  @RecaptchaAction('forgot_password')
   @Post('forgot-password')
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     await this.authService.forgotPassword(forgotPasswordDto.email);
@@ -119,6 +123,8 @@ export class AuthController {
   }
 
   @Public()
+  @UseGuards(RecaptchaGuard)
+  @RecaptchaAction('reset_password')
   @Post('reset-password')
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return await this.authService.resetPassword(resetPasswordDto);
