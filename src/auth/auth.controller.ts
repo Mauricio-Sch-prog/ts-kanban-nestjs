@@ -6,6 +6,7 @@ import {
   Query,
   Res,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -18,12 +19,16 @@ import { GoogleCredentialsDto } from './dto/googleCredentials.dto';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { VerifyEmailDto } from './dto/verifyEmail.dto';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
+import { RecaptchaGuard } from 'src/recaptcha/recaptcha.guard';
+import { RecaptchaAction } from 'src/recaptcha/recaptcha.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @UseGuards(RecaptchaGuard)
+  @RecaptchaAction('signup')
   @Post('signup')
   async signup(@Body() signupDto: SignupDto) {
     await this.authService.signup(signupDto);

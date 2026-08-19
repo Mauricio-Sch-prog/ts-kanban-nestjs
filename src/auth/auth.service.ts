@@ -54,7 +54,7 @@ export class AuthService {
     if (existingUser) {
       if (!existingUser.isVerified) {
         const newToken = this.generateToken();
-        await this.mailerService.sendMail(
+        void this.mailerService.sendMail(
           verifyAccountMailTemplate(
             signupDto.email,
             newToken.token,
@@ -71,7 +71,7 @@ export class AuthService {
 
     const token = this.generateToken();
 
-    await this.mailerService.sendMail(
+    void this.mailerService.sendMail(
       verifyAccountMailTemplate(
         signupDto.email,
         token.token,
@@ -177,7 +177,7 @@ export class AuthService {
 
     if (user) {
       const token = this.generateToken();
-      await this.mailerService.sendMail(
+      void this.mailerService.sendMail(
         resetPasswordMailTemplate(email, token.token, process.env.FRONTEND_URI),
       );
       await this.userService.update(user.id, {

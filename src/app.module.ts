@@ -19,6 +19,7 @@ import { AuthGuard } from './auth/guards/auth.guard';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { RecaptchaModule } from './recaptcha/recaptcha.module';
 
 const env = process.env.NODE_ENV;
 @Module({
@@ -63,6 +64,7 @@ const env = process.env.NODE_ENV;
       throttlers: env === 'test' ? [] : [{ ttl: 60000, limit: 50 }],
     }),
 
+    RecaptchaModule,
     AuthModule,
     BoardModule,
     LaneModule,
