@@ -40,6 +40,11 @@ export class AuthService {
     return { token: hashedToken, expiry: tokenExpiry };
   }
 
+  private generateJtwToken(user: Pick<User, 'id' | 'email'>): string {
+    const payload = { email: user.email, sub: user.id };
+    return this.jwtService.sign(payload);
+  }
+
   async signup(signupDto: SignupDto) {
     const existingUser = await this.userService.findByEmail(signupDto.email);
     const hashedPassword = await this.hashPassword(signupDto.password);
@@ -83,6 +88,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if (!user.isVerified) {
+      if (process.env.ISVERIFIEDCHECK === 'true')
+        throw new UnauthorizedException('User is not verified');
+    }
+
     return this.generateJtwToken(user);
   }
 
@@ -112,11 +122,13 @@ export class AuthService {
         name: payload.name ?? 'Google User',
         googleId,
         avatarUrl: payload.picture || undefined,
+        isVerified: true,
       });
     } else if (!user.googleId) {
       user = await this.userService.update(user.id, {
         googleId,
         avatarUrl: payload.picture || undefined,
+        isVerified: true,
       });
     }
 
@@ -141,11 +153,13 @@ export class AuthService {
       throw new UnauthorizedException('Verification token has expired');
     }
 
-    return await this.userService.update(user.id, {
+    await this.userService.update(user.id, {
       isVerified: true,
       verificationToken: undefined,
       verificationTokenExpiry: undefined,
     });
+
+    return 'Your account has been successfully validated';
   }
 
   async forgotPassword(email: string) {
@@ -156,11 +170,6 @@ export class AuthService {
       context: { is: 'none' },
     });
     return;
-  }
-
-  generateJtwToken(user: Pick<User, 'id' | 'email'>): string {
-    const payload = { email: user.email, sub: user.id };
-    return this.jwtService.sign(payload);
   }
 
   async validateToken(token: string) {

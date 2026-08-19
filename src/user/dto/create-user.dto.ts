@@ -6,6 +6,7 @@ import {
   MaxLength,
   IsOptional,
   IsDate,
+  IsBoolean,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -33,6 +34,10 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   avatarUrl?: string | undefined;
+
+  @IsOptional()
+  @IsBoolean()
+  isVerified?: boolean | undefined;
 
   @IsOptional()
   @IsString()

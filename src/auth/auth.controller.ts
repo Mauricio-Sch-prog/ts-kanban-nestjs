@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
@@ -81,9 +81,27 @@ export class AuthController {
 
   @Public()
   @Get('verify-email')
-  async verifyEmail(@Query() verifyEmailDto: VerifyEmailDto) {
-    await this.authService.verifyEmail(verifyEmailDto);
-    return;
+  async verifyEmail(
+    @Query() verifyEmailDto: VerifyEmailDto,
+    @Res() res: Response,
+  ) {
+    try {
+      await this.authService.verifyEmail(verifyEmailDto);
+
+      return res.redirect(
+        `${process.env.FRONTEND_URI}/auth/account-validation?status=success`,
+      );
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        return res.redirect(
+          `${process.env.FRONTEND_URI}/auth/account-validation?status=error`,
+        );
+      }
+
+      return res.redirect(
+        `${process.env.FRONTEND_URI}/auth/account-validation?status=error`,
+      );
+    }
   }
 
   @Public()

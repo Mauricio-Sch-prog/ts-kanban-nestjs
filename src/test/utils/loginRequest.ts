@@ -7,7 +7,7 @@ export const loginRequest = async (
   app: INestApplication,
   overrides: Partial<User> = {},
   mode: 'logOnly' | 'createOnly' | 'both' = 'both',
-) => {
+): Promise<request.Response> => {
   const email = faker.internet.email();
   const password = faker.internet.password();
   const http = () => request(app.getHttpServer());
