@@ -1,5 +1,9 @@
-export const verifyAccountMailTemplate = (email: string, token: string) => {
-  const verificationUrl = `${process.env.BACKEND_URI}/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
+export const verifyAccountMailTemplate = (
+  email: string,
+  token: string,
+  domain: string | undefined,
+) => {
+  const verificationUrl = `${domain}/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
   return {
     to: email,
     from: 'mauricio.ass.2016@gmail.com',

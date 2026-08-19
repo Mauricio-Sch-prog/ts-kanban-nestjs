@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, Res, UnauthorizedException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
@@ -9,6 +17,7 @@ import type { AuthenticatedUser } from 'src/common/type/authenticatedUser.interf
 import { GoogleCredentialsDto } from './dto/googleCredentials.dto';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { VerifyEmailDto } from './dto/verifyEmail.dto';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -73,13 +82,6 @@ export class AuthController {
   }
 
   @Public()
-  @Post('forgot-password')
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-    await this.authService.forgotPassword(forgotPasswordDto.email);
-    return `Restore password sent to ${forgotPasswordDto.email}`;
-  }
-
-  @Public()
   @Get('verify-email')
   async verifyEmail(
     @Query() verifyEmailDto: VerifyEmailDto,
@@ -102,6 +104,19 @@ export class AuthController {
         `${process.env.FRONTEND_URI}/auth/account-validation?status=error`,
       );
     }
+  }
+
+  @Public()
+  @Post('forgot-password')
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    await this.authService.forgotPassword(forgotPasswordDto.email);
+    return `If an account associated with this email exists, we've sent password reset instructions to ${forgotPasswordDto.email}.`;
+  }
+
+  @Public()
+  @Post('reset-password')
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return await this.authService.resetPassword(resetPasswordDto);
   }
 
   @Public()

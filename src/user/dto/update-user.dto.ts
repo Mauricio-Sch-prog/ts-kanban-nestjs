@@ -1,6 +1,7 @@
 import {
   IsBoolean,
   IsDate,
+  IsNotEmpty,
   IsOptional,
   IsString,
   MaxLength,
@@ -28,9 +29,24 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
-  verificationToken?: string | undefined;
+  verificationToken?: string | null;
 
   @IsOptional()
   @IsDate()
-  verificationTokenExpiry?: Date | undefined;
+  verificationTokenExpiry?: Date | null;
+
+  @IsOptional()
+  @IsString()
+  resetPasswordToken?: string | null;
+
+  @IsOptional()
+  @IsDate()
+  resetPasswordTokenExpiry?: Date | null;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @MinLength(12)
+  @MaxLength(100)
+  @IsString()
+  password?: string;
 }

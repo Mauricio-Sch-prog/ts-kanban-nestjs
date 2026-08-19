@@ -12,6 +12,8 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { randomBytes, createHash } from 'crypto';
 import { verifyAccountMailTemplate } from 'src/common/mail/templates/verifyAccount.template';
 import { VerifyEmailDto } from './dto/verifyEmail.dto';
+import { resetPasswordMailTemplate } from 'src/common/mail/templates/resetPassword.template';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
 
 @Injectable()
 export class AuthService {
@@ -53,7 +55,11 @@ export class AuthService {
       if (!existingUser.isVerified) {
         const newToken = this.generateToken();
         await this.mailerService.sendMail(
-          verifyAccountMailTemplate(signupDto.email, newToken.token),
+          verifyAccountMailTemplate(
+            signupDto.email,
+            newToken.token,
+            process.env.BACKEND_URI,
+          ),
         );
         return await this.userService.update(existingUser.id, {
           verificationToken: newToken.token,
@@ -66,7 +72,11 @@ export class AuthService {
     const token = this.generateToken();
 
     await this.mailerService.sendMail(
-      verifyAccountMailTemplate(signupDto.email, token.token),
+      verifyAccountMailTemplate(
+        signupDto.email,
+        token.token,
+        process.env.BACKEND_URI,
+      ),
     );
 
     return await this.userService.create({
@@ -155,21 +165,51 @@ export class AuthService {
 
     await this.userService.update(user.id, {
       isVerified: true,
-      verificationToken: undefined,
-      verificationTokenExpiry: undefined,
+      verificationToken: null,
+      verificationTokenExpiry: null,
     });
 
     return 'Your account has been successfully validated';
   }
 
   async forgotPassword(email: string) {
-    await this.mailerService.sendMail({
-      to: email,
-      from: 'we',
-      template: 'forgot your password',
-      context: { is: 'none' },
+    const user = await this.userService.findByEmail(email);
+
+    if (user) {
+      const token = this.generateToken();
+      await this.mailerService.sendMail(
+        resetPasswordMailTemplate(email, token.token, process.env.FRONTEND_URI),
+      );
+      await this.userService.update(user.id, {
+        resetPasswordToken: token.token,
+        resetPasswordTokenExpiry: token.expiry,
+      });
+    }
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const user = await this.userService.findByEmail(resetPasswordDto.email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid email');
+    }
+    if (user.resetPasswordToken !== resetPasswordDto.token) {
+      console.log(resetPasswordDto);
+      throw new UnauthorizedException('Invalid Token');
+    }
+
+    if (
+      !user.resetPasswordTokenExpiry ||
+      user.resetPasswordTokenExpiry < new Date()
+    ) {
+      throw new UnauthorizedException('Token has expired');
+    }
+
+    const hashedPassword = await this.hashPassword(resetPasswordDto.password);
+    return await this.userService.update(user.id, {
+      password: hashedPassword,
+      resetPasswordToken: null,
+      resetPasswordTokenExpiry: null,
     });
-    return;
   }
 
   async validateToken(token: string) {
