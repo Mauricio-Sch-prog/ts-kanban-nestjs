@@ -8,12 +8,11 @@ import { JwtService } from '@nestjs/jwt';
 import TokenPayload from './interfaces/token.interface';
 import { SignupDto } from './dto/signup.dto';
 import { OAuth2Client } from 'google-auth-library';
-import { MailerService } from '@nestjs-modules/mailer';
 import { randomBytes, createHash } from 'crypto';
-import { verifyAccountMailTemplate } from 'src/common/mail/templates/verifyAccount.template';
 import { VerifyEmailDto } from './dto/verifyEmail.dto';
-import { resetPasswordMailTemplate } from 'src/common/mail/templates/resetPassword.template';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +22,8 @@ export class AuthService {
   constructor(
     private userService: UserService,
     private readonly jwtService: JwtService,
-    private readonly mailerService: MailerService,
+    @InjectQueue('mail')
+    private readonly mailQueue: Queue,
   ) {}
 
   private readonly saltRounds = 12;
@@ -54,12 +54,19 @@ export class AuthService {
     if (existingUser) {
       if (!existingUser.isVerified) {
         const newToken = this.generateToken();
-        void this.mailerService.sendMail(
-          verifyAccountMailTemplate(
-            signupDto.email,
-            newToken.token,
-            process.env.BACKEND_URI,
-          ),
+        await this.mailQueue.add(
+          'verify-email',
+          {
+            email: signupDto.email,
+            token: newToken.token,
+          },
+          {
+            attempts: 3,
+            backoff: {
+              type: 'exponential',
+              delay: 5000,
+            },
+          },
         );
         return await this.userService.update(existingUser.id, {
           verificationToken: newToken.token,
@@ -71,12 +78,19 @@ export class AuthService {
 
     const token = this.generateToken();
 
-    void this.mailerService.sendMail(
-      verifyAccountMailTemplate(
-        signupDto.email,
-        token.token,
-        process.env.BACKEND_URI,
-      ),
+    await this.mailQueue.add(
+      'verify-email',
+      {
+        email: signupDto.email,
+        token: token.token,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+      },
     );
 
     return await this.userService.create({
@@ -175,16 +189,31 @@ export class AuthService {
   async forgotPassword(email: string) {
     const user = await this.userService.findByEmail(email);
 
-    if (user) {
-      const token = this.generateToken();
-      void this.mailerService.sendMail(
-        resetPasswordMailTemplate(email, token.token, process.env.FRONTEND_URI),
-      );
-      await this.userService.update(user.id, {
-        resetPasswordToken: token.token,
-        resetPasswordTokenExpiry: token.expiry,
-      });
+    if (!user) {
+      return;
     }
+
+    const token = this.generateToken();
+
+    await this.userService.update(user.id, {
+      resetPasswordToken: token.token,
+      resetPasswordTokenExpiry: token.expiry,
+    });
+
+    await this.mailQueue.add(
+      'reset-password',
+      {
+        email,
+        token: token.token,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+      },
+    );
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
@@ -193,7 +222,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email');
     }
     if (user.resetPasswordToken !== resetPasswordDto.token) {
-      console.log(resetPasswordDto);
       throw new UnauthorizedException('Invalid Token');
     }
 

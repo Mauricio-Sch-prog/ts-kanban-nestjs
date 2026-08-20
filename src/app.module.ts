@@ -20,10 +20,19 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { RecaptchaModule } from './recaptcha/recaptcha.module';
+import { BullModule } from '@nestjs/bullmq';
+import { MailModule } from './mail/mail.module';
 
 const env = process.env.NODE_ENV;
 @Module({
   imports: [
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST ?? 'localhost',
+        port: Number(process.env.REDIS_PORT ?? 6379),
+      },
+    }),
+
     MailerModule.forRoot({
       transport: {
         host: 'sandbox.smtp.mailtrap.io',
@@ -65,6 +74,7 @@ const env = process.env.NODE_ENV;
     }),
 
     RecaptchaModule,
+    MailModule,
     AuthModule,
     BoardModule,
     LaneModule,

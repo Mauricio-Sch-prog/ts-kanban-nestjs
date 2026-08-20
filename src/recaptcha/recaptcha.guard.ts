@@ -25,8 +25,6 @@ export class RecaptchaGuard implements CanActivate {
     );
     const request = context.switchToHttp().getRequest<RecaptchaRequest>();
 
-    console.log('recaptcha guard');
-
     const headerToken = request.headers?.['x-recaptcha-token'];
     const token = Array.isArray(headerToken)
       ? headerToken[0]
@@ -34,9 +32,7 @@ export class RecaptchaGuard implements CanActivate {
     if (!token) {
       return false;
     }
-    console.log(token);
 
-    // Verify token against Google (threshold defaults to 0.5)
     await this.recaptchaService.verifyToken(token, expectedAction, 0.5);
 
     return true;

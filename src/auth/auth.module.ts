@@ -6,6 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthGuard } from './guards/auth.guard';
 import { RecaptchaModule } from 'src/recaptcha/recaptcha.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -18,6 +19,9 @@ import { RecaptchaModule } from 'src/recaptcha/recaptcha.module';
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: '6h' },
       }),
+    }),
+    BullModule.registerQueue({
+      name: 'mail',
     }),
   ],
   providers: [AuthService, AuthGuard],
