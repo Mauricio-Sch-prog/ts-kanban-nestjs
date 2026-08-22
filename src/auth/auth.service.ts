@@ -113,8 +113,7 @@ export class AuthService {
     }
 
     if (!user.isVerified) {
-      if (process.env.ISVERIFIEDCHECK === 'true')
-        throw new UnauthorizedException('User is not verified');
+      throw new UnauthorizedException('User is not verified');
     }
 
     return this.generateJtwToken(user);

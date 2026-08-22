@@ -23,14 +23,22 @@ import { RecaptchaModule } from './recaptcha/recaptcha.module';
 import { BullModule } from '@nestjs/bullmq';
 import { MailModule } from './mail/mail.module';
 
-const env = process.env.NODE_ENV;
 @Module({
   imports: [
-    BullModule.forRoot({
-      connection: {
-        host: process.env.REDIS_HOST ?? 'localhost',
-        port: Number(process.env.REDIS_PORT ?? 6379),
-      },
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
+      validate,
+    }),
+
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          url: configService.get<string>('REDIS_URL'),
+        },
+      }),
     }),
 
     MailerModule.forRoot({
@@ -48,29 +56,30 @@ const env = process.env.NODE_ENV;
       },
     }),
 
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: env === 'test' ? '.env.test' : '.env',
-      validate,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        url: configService.get<string>('DATABASE_URL'),
+        ssl: {
+          rejectUnauthorized: false,
+        },
+        entities: [User, Board, Lane, Task, Tag],
+        autoLoadEntities: true,
+        synchronize: configService.get<string>('NODE_ENV') !== 'production',
+      }),
     }),
-    ...(env !== 'test'
-      ? [
-          TypeOrmModule.forRootAsync({
-            imports: [ConfigModule],
-            inject: [ConfigService],
-            useFactory: (configService: ConfigService) => ({
-              type: 'postgres',
-              entities: [User, Board, Lane, Task, Tag],
-              url: configService.get<string>('DATABASE_URL'),
-              autoLoadEntities: true,
-              synchronize: env !== 'production',
-            }),
-          }),
-        ]
-      : []),
 
-    ThrottlerModule.forRoot({
-      throttlers: env === 'test' ? [] : [{ ttl: 60000, limit: 50 }],
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        throttlers:
+          configService.get<string>('NODE_ENV') === 'test'
+            ? []
+            : [{ ttl: 60000, limit: 50 }],
+      }),
     }),
 
     RecaptchaModule,
@@ -99,7 +108,7 @@ const env = process.env.NODE_ENV;
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    if (env !== 'test') {
+    if (process.env.NODE_ENV !== 'test') {
       consumer.apply(LoggerMiddleware).forRoutes('*');
     }
   }

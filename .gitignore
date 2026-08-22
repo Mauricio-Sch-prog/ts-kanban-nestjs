@@ -38,6 +38,7 @@ lerna-debug.log*
 
 # dotenv environment variable files
 .env
+.env.copy
 .env.development.local
 .env.test
 .env.test.local
@@ -56,3 +57,6 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Local file
+temp.json

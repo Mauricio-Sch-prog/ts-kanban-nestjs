@@ -49,6 +49,8 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'lax',
+      path: '/',
+      domain: '.prettierkanban.dev',
       maxAge: 1000 * 60 * 60 * 4,
     });
 
@@ -69,6 +71,8 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'lax',
+      path: '/',
+      domain: '.prettierkanban.dev',
       maxAge: 1000 * 60 * 60 * 4,
     });
 
