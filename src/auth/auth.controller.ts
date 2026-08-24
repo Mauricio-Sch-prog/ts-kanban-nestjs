@@ -50,7 +50,7 @@ export class AuthController {
       secure: true,
       sameSite: 'lax',
       path: '/',
-      domain: '.prettierkanban.dev',
+      domain: process.env.COOKIE_DOMAIN,
       maxAge: 1000 * 60 * 60 * 4,
     });
 
@@ -72,7 +72,7 @@ export class AuthController {
       secure: true,
       sameSite: 'lax',
       path: '/',
-      domain: '.prettierkanban.dev',
+      domain: process.env.COOKIE_DOMAIN,
       maxAge: 1000 * 60 * 60 * 4,
     });
 
@@ -86,7 +86,7 @@ export class AuthController {
       secure: true,
       sameSite: 'lax',
       path: '/',
-      expires: new Date(0),
+      domain: process.env.COOKIE_DOMAIN,
     });
 
     return 'Logged out';
@@ -138,5 +138,11 @@ export class AuthController {
   @Get()
   check(@CurrentUser() user: AuthenticatedUser | null) {
     return user;
+  }
+
+  @Public()
+  @Get('/test')
+  test() {
+    return 'tested';
   }
 }
