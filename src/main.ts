@@ -62,6 +62,7 @@ async function bootstrap() {
       'Authorization',
       'Accept',
       'X-Requested-With',
+      'x-recaptcha-token',
     ],
     optionsSuccessStatus: 204,
   });

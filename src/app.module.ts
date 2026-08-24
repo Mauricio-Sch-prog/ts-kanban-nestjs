@@ -23,22 +23,13 @@ import { RecaptchaModule } from './recaptcha/recaptcha.module';
 import { BullModule } from '@nestjs/bullmq';
 import { MailModule } from './mail/mail.module';
 
+const isTest = process.env.NODE_ENV === 'test';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
+      envFilePath: isTest ? '.env.test' : '.env',
       validate,
-    }),
-
-    BullModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        connection: {
-          url: configService.get<string>('REDIS_URL'),
-        },
-      }),
     }),
 
     MailerModule.forRoot({
@@ -56,29 +47,58 @@ import { MailModule } from './mail/mail.module';
       },
     }),
 
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        url: configService.get<string>('DATABASE_URL'),
-        ssl: {
-          rejectUnauthorized: false,
-        },
-        entities: [User, Board, Lane, Task, Tag],
-        autoLoadEntities: true,
-        synchronize: configService.get<string>('NODE_ENV') !== 'production',
-      }),
-    }),
+    ...(!isTest
+      ? [
+          TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => {
+              const isProduction =
+                configService.get<string>('NODE_ENV') === 'production';
+
+              return {
+                type: 'postgres',
+                host: configService.get<string>('DATABASE_HOST', 'localhost'),
+                port: configService.get<number>('DATABASE_PORT', 5434),
+                username: configService.get<string>('DATABASE_USER'),
+                password: configService.get<string>('DATABASE_PASSWORD'),
+                database: configService.get<string>('DATABASE_NAME'),
+                ssl: isProduction ? { rejectUnauthorized: false } : false,
+                entities: [User, Board, Lane, Task, Tag],
+                autoLoadEntities: true,
+                synchronize: !isProduction,
+              };
+            },
+          }),
+
+          BullModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => {
+              const isProduction =
+                configService.get<string>('NODE_ENV') === 'production';
+
+              return {
+                connection: isProduction
+                  ? { url: configService.get<string>('REDIS_URL') }
+                  : {
+                      host: configService.get<string>(
+                        'REDIS_HOST',
+                        'localhost',
+                      ),
+                      port: configService.get<number>('REDIS_PORT', 6379),
+                    },
+              };
+            },
+          }),
+        ]
+      : []),
 
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        throttlers:
-          configService.get<string>('NODE_ENV') === 'test'
-            ? []
-            : [{ ttl: 60000, limit: 50 }],
+      useFactory: () => ({
+        throttlers: isTest ? [] : [{ ttl: 60000, limit: 50 }],
       }),
     }),
 
