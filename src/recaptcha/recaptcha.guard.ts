@@ -1,5 +1,9 @@
-// recaptcha.guard.ts
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { RecaptchaService } from './recaptcha.service';
 import { RECAPTCHA_ACTION_KEY } from './recaptcha.decorator';
@@ -23,6 +27,9 @@ export class RecaptchaGuard implements CanActivate {
       RECAPTCHA_ACTION_KEY,
       context.getHandler(),
     );
+
+    if (process.env.NODE_ENV !== 'production') return true;
+
     const request = context.switchToHttp().getRequest<RecaptchaRequest>();
 
     const headerToken = request.headers?.['x-recaptcha-token'];
@@ -30,7 +37,7 @@ export class RecaptchaGuard implements CanActivate {
       ? headerToken[0]
       : (headerToken ?? request.body?.recaptchaToken);
     if (!token) {
-      return false;
+      throw new BadRequestException('reCAPTCHA token is missing');
     }
 
     await this.recaptchaService.verifyToken(token, expectedAction, 0.5);

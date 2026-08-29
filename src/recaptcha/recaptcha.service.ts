@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   ForbiddenException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -39,14 +40,24 @@ export class RecaptchaService {
       response: token,
     });
 
-    const response = await fetch(
-      'https://www.google.com/recaptcha/api/siteverify',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params,
-      },
-    );
+    let response: Response;
+
+    try {
+      response = await fetch(
+        'https://www.google.com/recaptcha/api/siteverify',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: params,
+        },
+      );
+    } catch (error) {
+      throw new ServiceUnavailableException(
+        'reCAPTCHA verification service is unavailable',
+      );
+    }
 
     const data: RecaptchaResponse = await response.json();
 

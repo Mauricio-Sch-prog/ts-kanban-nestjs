@@ -24,6 +24,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { MailModule } from './mail/mail.module';
 
 const isTest = process.env.NODE_ENV === 'test';
+const isProduction = process.env.NODE_ENV === 'production';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -53,9 +54,6 @@ const isTest = process.env.NODE_ENV === 'test';
             imports: [ConfigModule],
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => {
-              const isProduction =
-                configService.get<string>('NODE_ENV') === 'production';
-
               return {
                 type: 'postgres',
                 host: configService.get<string>('DATABASE_HOST', 'localhost'),
@@ -75,9 +73,6 @@ const isTest = process.env.NODE_ENV === 'test';
             imports: [ConfigModule],
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => {
-              const isProduction =
-                configService.get<string>('NODE_ENV') === 'production';
-
               return {
                 connection: isProduction
                   ? { url: configService.get<string>('REDIS_URL') }
@@ -98,7 +93,7 @@ const isTest = process.env.NODE_ENV === 'test';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: () => ({
-        throttlers: isTest ? [] : [{ ttl: 60000, limit: 50 }],
+        throttlers: isTest ? [] : [{ ttl: 60000, limit: 100 }],
       }),
     }),
 
