@@ -18,6 +18,7 @@ import { CheckOwnership } from 'src/common/decorator/ownershipOptions.decorator'
 import { Lane } from './entities/lane.entity';
 import { Board } from 'src/board/entities/board.entity';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { MoveLaneDto } from './dto/move.lane.dto';
 
 @Controller('lane')
 @UseGuards(AuthGuard)
@@ -60,6 +61,22 @@ export class LaneController {
   })
   findBoardLanes(@Param('boardId', ParseUUIDPipe) id: string) {
     return this.laneService.findBoardLanes(id);
+  }
+
+  @Patch(':id/move')
+  @CheckOwnership({
+    entity: Lane,
+    where: (userId, laneId) => ({
+      id: laneId,
+      user: { id: userId },
+    }),
+  })
+  moveLane(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() moveLaneDto: MoveLaneDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.laneService.moveLane(id, moveLaneDto, user.id);
   }
 
   @Patch(':id')

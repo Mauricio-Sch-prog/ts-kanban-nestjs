@@ -9,7 +9,7 @@ export class Lane extends BaseEntity {
   @Column({ type: 'varchar', length: 150 })
   name!: string;
 
-  @Column({ type: 'integer', default: 1 })
+  @Column({ type: 'integer', default: 0 })
   index!: number;
 
   @ManyToOne('Board', { onDelete: 'CASCADE' })
