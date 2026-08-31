@@ -11,7 +11,7 @@ import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Board } from 'src/board/entities/board.entity';
 import { LaneScopedRepository } from './lane.scoped.repository';
-import { MoveLaneDto } from './dto/move.lane.dto';
+import { MoveLaneDto } from './dto/move-lane.dto';
 
 @Injectable()
 export class LaneService {
@@ -57,7 +57,6 @@ export class LaneService {
       ...createLaneDto,
       index,
       board: { id: board.id },
-      user: { id: userId },
     });
 
     return this.laneRepo.save(lane);
@@ -79,14 +78,6 @@ export class LaneService {
 
   async moveLane(id: string, moveLaneDto: MoveLaneDto, userId: string) {
     const { targetBoard, targetIndex } = moveLaneDto;
-
-    if (!Number.isInteger(targetIndex) || targetIndex < 0) {
-      throw new BadRequestException(
-        'targetIndex must be an integer greater than or equal to 1',
-      );
-    }
-
-    console.log(moveLaneDto);
 
     return this.dataSource.transaction(async (manager) => {
       const lane = await manager.findOne(Lane, {

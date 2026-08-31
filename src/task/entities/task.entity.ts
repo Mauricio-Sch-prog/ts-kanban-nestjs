@@ -11,7 +11,7 @@ export class Task extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   description!: string;
 
-  @Column({ type: 'integer', default: 1 })
+  @Column({ type: 'integer', default: 0 })
   index!: number;
 
   @ManyToOne('Lane', { onDelete: 'CASCADE' })

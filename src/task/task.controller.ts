@@ -18,6 +18,7 @@ import type { AuthenticatedUser } from 'src/common/type/authenticatedUser.interf
 import { CheckOwnership } from 'src/common/decorator/ownershipOptions.decorator';
 import { Task } from './entities/task.entity';
 import { Lane } from 'src/lane/entities/lane.entity';
+import { MoveTaskDto } from './dto/move-task.dto';
 
 @Controller('task')
 @UseGuards(AuthGuard)
@@ -60,6 +61,22 @@ export class TaskController {
   })
   findLaneTasks(@Param('laneId', ParseUUIDPipe) id: string) {
     return this.taskService.findLaneTasks(id);
+  }
+
+  @Patch(':id/move')
+  @CheckOwnership({
+    entity: Task,
+    where: (userId, taskId) => ({
+      id: taskId,
+      user: { id: userId },
+    }),
+  })
+  moveTask(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() moveTaskDto: MoveTaskDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.taskService.moveTask(id, moveTaskDto, user.id);
   }
 
   @Patch(':id')

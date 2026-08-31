@@ -18,7 +18,7 @@ import { CheckOwnership } from 'src/common/decorator/ownershipOptions.decorator'
 import { Lane } from './entities/lane.entity';
 import { Board } from 'src/board/entities/board.entity';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { MoveLaneDto } from './dto/move.lane.dto';
+import { MoveLaneDto } from './dto/move-lane.dto';
 
 @Controller('lane')
 @UseGuards(AuthGuard)
