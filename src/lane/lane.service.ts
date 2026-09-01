@@ -232,7 +232,7 @@ export class LaneService {
   async remove(id: string) {
     const lane = await this.validateById(id);
 
-    await this.laneRepo.softRemove(lane.id);
+    await this.laneRepo.remove(lane.id);
 
     return { message: 'Successfully' };
   }

@@ -96,8 +96,8 @@ export abstract class BaseScopedRepository<T extends Owned> {
     });
   }
 
-  async softRemove(id: string): Promise<boolean> {
-    const result = await this.repo.softDelete(
+  async remove(id: string): Promise<boolean> {
+    const result = await this.repo.delete(
       this.scopedWhere({ id } as Partial<T>),
     );
 
