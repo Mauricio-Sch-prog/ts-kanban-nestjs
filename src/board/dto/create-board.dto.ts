@@ -4,8 +4,13 @@ import {
   MaxLength,
   IsOptional,
   IsNumber,
+  IsUUID,
 } from 'class-validator';
 export class CreateBoardDto {
+  @IsOptional()
+  @IsUUID()
+  id?: string;
+
   @IsNotEmpty()
   @IsString()
   @MaxLength(50)

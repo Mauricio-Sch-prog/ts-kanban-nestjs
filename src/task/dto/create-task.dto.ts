@@ -8,6 +8,10 @@ import {
 } from 'class-validator';
 
 export class CreateTaskDto {
+  @IsOptional()
+  @IsUUID()
+  id?: string;
+
   @IsNotEmpty()
   @IsString()
   @MaxLength(50)
